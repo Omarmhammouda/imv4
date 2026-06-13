@@ -7,7 +7,29 @@
       "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__generate_image",
       "Bash(ffmpeg -version)",
       "Bash(brew install *)",
-      "Bash(npx --yes create-next-app@latest . --typescript --app --src-dir --no-tailwind --no-eslint --import-alias \"@/*\" --use-npm --turbopack)"
+      "Bash(npx --yes create-next-app@latest . --typescript --app --src-dir --no-tailwind --no-eslint --import-alias \"@/*\" --use-npm --turbopack)",
+      "Bash(grep -vE '^\\\\.git$|node_modules')",
+      "Bash(npm install *)",
+      "Bash(/opt/homebrew/bin/ffmpeg -version)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.dependencies,null,1\\)\\)\")",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__show_generations",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__job_display",
+      "Bash(cd \"/Users/omarhammouda/Documents/Websites/Insomnia Murals/v4\" && mkdir -p scripts /tmp/im_raw)",
+      "Bash(curl -s -o canA.png __TRACKED_VAR__/hf_20260613_082345_9e47938b-e9f7-4691-9854-0eea78f4d154.png)",
+      "Bash(curl -s -o canB.png __TRACKED_VAR__/hf_20260613_082345_0552c3a5-0d25-42ad-b496-2860e9f40bec.png)",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__generate_3d",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__remove_background",
+      "Bash(rm -f src/app/page.module.css)",
+      "Bash(npx tsc *)",
+      "Bash(cp public/models/spray-can.glb /tmp/im_raw/spray-can-orig.glb)",
+      "Bash(npx --yes @gltf-transform/cli@latest inspect /tmp/im_raw/spray-can-orig.glb)",
+      "Bash(npx --yes @gltf-transform/cli@latest optimize /tmp/im_raw/spray-can-orig.glb public/models/spray-can.glb --compress meshopt --texture-compress webp --texture-size 1024)",
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s -o /dev/null -w \"dev HTTP %{http_code}\\\\n\" http://localhost:4317)",
+      "Bash(curl -s -o /dev/null -w \"/work HTTP %{http_code}\\\\n\" http://localhost:4317/work)",
+      "Bash(git config *)",
+      "Bash(git add *)"
     ]
   }
 }

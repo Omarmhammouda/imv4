@@ -1,0 +1,53 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-video);
+  background: var(--bg-deep);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 1.1s var(--ease-out-quart);
+  will-change: opacity;
+  /* keep footage moody + monochrome-leaning so the red can/cap stays the focal colour */
+  filter: contrast(1.08) brightness(0.82) saturate(0.85);
+}
+
+/* base tint + directional darkening for legibility (WCAG-safe plate) */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(5, 5, 6, 0.55) 0%,
+      rgba(5, 5, 6, 0.25) 30%,
+      rgba(5, 5, 6, 0.35) 70%,
+      rgba(5, 5, 6, 0.75) 100%
+    ),
+    linear-gradient(90deg, rgba(5, 5, 6, 0.7), rgba(5, 5, 6, 0.15) 55%);
+  transition: background 0.8s var(--ease-out-quart);
+}
+.stage[data-align="right"] .scrim {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(5, 5, 6, 0.55) 0%,
+      rgba(5, 5, 6, 0.25) 30%,
+      rgba(5, 5, 6, 0.35) 70%,
+      rgba(5, 5, 6, 0.75) 100%
+    ),
+    linear-gradient(270deg, rgba(5, 5, 6, 0.7), rgba(5, 5, 6, 0.15) 55%);
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 100% at 50% 45%, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+}

@@ -1,0 +1,52 @@
+.layers {
+  /* opacity hook for the fixed video + canvas; children are position:fixed */
+  position: relative;
+  z-index: var(--z-canvas);
+}
+
+.chapters {
+  position: relative;
+  z-index: var(--z-content);
+}
+
+/* scroll hint on the first chapter */
+.hint {
+  position: fixed;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: var(--tracking-hud);
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out-expo);
+  pointer-events: none;
+}
+.hintShow { opacity: 1; }
+.hintLine {
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(var(--accent), transparent);
+  animation: drop 1.8s ease-in-out infinite;
+}
+@keyframes drop {
+  0% { transform: scaleY(0); transform-origin: top; }
+  40% { transform: scaleY(1); transform-origin: top; }
+  60% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hintLine { animation: none; }
+}
+@media (max-width: 768px) {
+  .hint { display: none; }
+}

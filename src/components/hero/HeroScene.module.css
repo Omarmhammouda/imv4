@@ -1,0 +1,12 @@
+.canvas {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-canvas);
+  pointer-events: none;
+  /* let the can read crisply against the video without fighting it */
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
+}
+.canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

@@ -1,0 +1,99 @@
+.cta {
+  --cta-fg: var(--fg);
+  --cta-bg: transparent;
+  --cta-border: var(--line-strong);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--cta-fg);
+  background: var(--cta-bg);
+  border: 1px solid var(--cta-border);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  transition:
+    color var(--dur) var(--ease-out-expo),
+    background-color var(--dur) var(--ease-out-expo),
+    border-color var(--dur) var(--ease-out-expo),
+    transform var(--dur) var(--ease-out-expo);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* sliding red fill */
+.cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateY(101%);
+  transition: transform var(--dur) var(--ease-out-expo);
+}
+
+.label {
+  font-size: var(--fs-label);
+  line-height: 1;
+}
+
+.arrow {
+  width: 1.1em;
+  height: 1.1em;
+  flex: none;
+  transition: transform var(--dur) var(--ease-out-expo);
+}
+
+/* sizes */
+.sm { padding: 0.6rem 1rem; }
+.md { padding: 0.85rem 1.4rem; }
+.lg { padding: 1.1rem 1.9rem; }
+.lg .label { font-size: var(--fs-body-sm); }
+
+/* variants */
+.outline { --cta-border: var(--line-strong); }
+.ghost { --cta-border: transparent; padding-inline: 0.4rem; }
+.solid {
+  --cta-fg: var(--ink-1000);
+  --cta-bg: var(--paper);
+  --cta-border: var(--paper);
+}
+.solid::before { background: var(--accent); }
+
+/* hover / focus */
+@media (hover: hover) {
+  .cta:hover {
+    --cta-fg: var(--accent-contrast);
+    --cta-border: var(--accent);
+  }
+  .cta:hover::before {
+    transform: translateY(0);
+  }
+  .cta:hover .arrow {
+    transform: translateX(0.25em);
+  }
+  .solid:hover {
+    --cta-fg: var(--accent-contrast);
+  }
+}
+
+.cta:focus-visible {
+  --cta-border: var(--accent);
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.cta:active {
+  transform: scale(0.97);
+}
+.cta:active::before {
+  background: var(--accent-pressed);
+}
+
+.cta:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

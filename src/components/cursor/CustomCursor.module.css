@@ -1,0 +1,75 @@
+.wrap {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+}
+
+.ring,
+.dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  visibility: hidden;
+  will-change: transform;
+}
+
+.ring {
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 1px solid var(--fg-subtle);
+  display: grid;
+  place-items: center;
+  transition:
+    width var(--dur) var(--ease-out-expo),
+    height var(--dur) var(--ease-out-expo),
+    margin var(--dur) var(--ease-out-expo),
+    background-color var(--dur) var(--ease-out-expo),
+    border-color var(--dur) var(--ease-out-expo);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--accent);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--accent-contrast);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out-expo);
+}
+
+/* hovering an interactive element */
+.ring[data-state="link"] {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* a labelled target (e.g. region tiles → "VIEW") */
+.ring[data-has-label="true"] {
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ring[data-has-label="true"] .label {
+  opacity: 1;
+}
+
+.ring[data-pressed="true"] {
+  transform: scale(0.85);
+}
