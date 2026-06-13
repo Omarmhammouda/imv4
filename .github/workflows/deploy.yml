@@ -1,22 +1,24 @@
 name: Deploy to GitHub Pages
 
+# Builds the static export and publishes it to the `gh-pages` branch, which
+# GitHub Pages serves. Publishing via a plain push (built-in GITHUB_TOKEN)
+# avoids the `github-pages` deployment environment, whose branch gate can leave
+# deploys stuck "waiting" on non-default branches.
+
 on:
   push:
     branches: [main, feat/cinematic-mural-site]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# one deploy at a time; let an in-progress run finish
 concurrency:
-  group: pages
+  group: pages-publish
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAGES: "true"
@@ -29,17 +31,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: touch out/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish to gh-pages
+        run: |
+          touch out/.nojekyll
+          cd out
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
