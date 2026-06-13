@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import CtaBand from "@/components/site/CtaBand";
 import Reveal from "@/components/ui/Reveal";
+import { withBase } from "@/lib/asset";
 import s from "@/components/site/sections.module.css";
 
 export const metadata: Metadata = {
@@ -98,7 +99,7 @@ export default function AboutPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className={s.featureImg}
-              src="/textures/can-cutout.png"
+              src={withBase("/textures/can-cutout.png")}
               alt="The Insomnia Murals signature spray can — matte black body, white label, red cap."
               width={1120}
               height={1500}

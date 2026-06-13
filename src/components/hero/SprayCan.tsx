@@ -4,9 +4,10 @@ import { Suspense, Component, useMemo, useEffect, useRef, type ReactNode } from 
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useExperience } from "@/lib/store";
+import { withBase } from "@/lib/asset";
 import SprayBurst from "./SprayBurst";
 
-const GLB_URL = "/models/spray-can.glb";
+const GLB_URL = withBase("/models/spray-can.glb");
 const TARGET_HEIGHT = 3.2;
 const NOZZLE: [number, number, number] = [0, 1.85, 0];
 

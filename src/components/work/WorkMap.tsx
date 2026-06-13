@@ -4,6 +4,7 @@ import { useState } from "react";
 import { regions } from "@/lib/projects";
 import { useExperience } from "@/lib/store";
 import { sfx } from "@/lib/sound";
+import { withBase } from "@/lib/asset";
 import styles from "./WorkMap.module.css";
 
 export default function WorkMap() {
@@ -50,15 +51,15 @@ export default function WorkMap() {
                   <video
                     key={r.id}
                     className={styles.mobileVideo}
-                    poster={r.poster}
+                    poster={withBase(r.poster)}
                     muted
                     loop
                     playsInline
                     autoPlay={!reduced}
                     preload="none"
                   >
-                    <source src={r.video.replace(".mp4", ".webm")} type="video/webm" />
-                    <source src={r.video} type="video/mp4" />
+                    <source src={withBase(r.video.replace(".mp4", ".webm"))} type="video/webm" />
+                    <source src={withBase(r.video)} type="video/mp4" />
                   </video>
                 </div>
                 <p className={styles.mobileBlurb}>{r.blurb}</p>
@@ -86,15 +87,15 @@ export default function WorkMap() {
             <video
               key={active.id}
               className={styles.previewVideo}
-              poster={active.poster}
+              poster={withBase(active.poster)}
               muted
               loop
               playsInline
               autoPlay={!reduced}
               preload="none"
             >
-              <source src={active.video.replace(".mp4", ".webm")} type="video/webm" />
-              <source src={active.video} type="video/mp4" />
+              <source src={withBase(active.video.replace(".mp4", ".webm"))} type="video/webm" />
+              <source src={withBase(active.video)} type="video/mp4" />
             </video>
             <div className={styles.previewScrim} />
             <div className={styles.previewBadge}>
