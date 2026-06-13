@@ -1,0 +1,179 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preloader);
+  background: var(--bg-deep);
+  clip-path: inset(0% 0% 0% 0%);
+  overflow: hidden;
+  will-change: clip-path;
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(120% 80% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.6) 100%),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.025) 0px,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+}
+
+/* skip — top right */
+.skip {
+  position: absolute;
+  top: clamp(1.25rem, 4vw, 2.5rem);
+  right: var(--gutter);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  min-height: 44px;
+  padding: 0 0.5rem;
+  transition: color var(--dur) var(--ease-out-expo);
+}
+.skip:hover { color: var(--accent); }
+
+/* brand — top left */
+.brand {
+  position: absolute;
+  top: clamp(1.25rem, 4vw, 2.5rem);
+  left: var(--gutter);
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.brandMark {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  grid-row: span 2;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: rotate(45deg) scale(1); opacity: 1; }
+  50% { transform: rotate(45deg) scale(0.78); opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brandMark { animation: none; }
+}
+.brandName {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  align-self: end;
+}
+.brandTag {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-hud);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  align-self: start;
+}
+
+/* center cluster */
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  width: min(720px, 86vw);
+}
+.counterWrap {
+  display: flex;
+  align-items: flex-start;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+.counter {
+  font-size: clamp(5rem, 24vw, 20rem);
+  letter-spacing: -0.04em;
+}
+.pct {
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  color: var(--accent);
+  margin-top: 0.6em;
+  margin-left: 0.2em;
+}
+.bar {
+  width: 100%;
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.status {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: var(--tracking-hud);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* press start — bottom */
+.start {
+  position: absolute;
+  bottom: clamp(2rem, 8vh, 6rem);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.startInner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 1rem 2.2rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--fs-body-sm);
+  letter-spacing: var(--tracking-hud);
+  text-transform: uppercase;
+  color: var(--fg);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  transition: background-color var(--dur) var(--ease-out-expo), color var(--dur) var(--ease-out-expo);
+  animation: breathe 2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 34, 51, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(255, 34, 51, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .startInner { animation: none; }
+}
+.start:hover .startInner {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.startIcon {
+  font-size: 0.8em;
+  color: var(--accent);
+  transition: color var(--dur) var(--ease-out-expo);
+}
+.start:hover .startIcon { color: var(--accent-contrast); }

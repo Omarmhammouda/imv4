@@ -1,0 +1,91 @@
+.footer {
+  position: relative;
+  z-index: 2; /* sit above the fixed hero layers on the home route */
+  background: var(--bg-deep);
+  border-top: 1px solid var(--line);
+  padding-block: clamp(3rem, 7vw, 7rem) var(--space-xl);
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--space-3xl) var(--space-2xl);
+  align-items: start;
+}
+
+.call {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+.callTitle {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--fs-h2);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+}
+.colTitle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: var(--tracking-hud);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-bottom: var(--space-md);
+}
+.col ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.link {
+  font-size: var(--fs-body-sm);
+  color: var(--fg-muted);
+  transition: color var(--dur) var(--ease-out-expo);
+}
+.link:hover { color: var(--accent); }
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: clamp(3rem, 6vw, 6rem);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--line);
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+.logoMark {
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+.fine {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-wide);
+  color: var(--fg-subtle);
+}
+
+@media (max-width: 880px) {
+  .inner { grid-template-columns: 1fr; gap: var(--space-2xl); }
+}
+@media (max-width: 560px) {
+  .cols { grid-template-columns: 1fr 1fr; }
+  .bottom { flex-direction: column; align-items: flex-start; gap: var(--space-2xs); }
+}

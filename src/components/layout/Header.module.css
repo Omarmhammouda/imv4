@@ -1,0 +1,109 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: var(--z-header);
+  pointer-events: none;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h);
+  padding-inline: var(--gutter);
+  max-width: var(--container);
+  margin-inline: auto;
+}
+
+.inner > * {
+  pointer-events: auto;
+}
+
+/* logo */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.logoMark {
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+  transform: rotate(45deg);
+  transition: transform var(--dur) var(--ease-spring);
+}
+.logo:hover .logoMark {
+  transform: rotate(135deg);
+}
+.logoText {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.logoSub {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: var(--tracking-hud);
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+  color: var(--fg-subtle);
+}
+
+/* actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.menuBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--fg);
+  transition: color var(--dur) var(--ease-out-expo);
+}
+.menuBtn:hover {
+  color: var(--accent);
+}
+.menuLabel {
+  min-width: 3.2em;
+  text-align: right;
+}
+
+.burger {
+  position: relative;
+  width: 26px;
+  height: 12px;
+  display: inline-block;
+}
+.burger span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  transition: transform var(--dur) var(--ease-out-expo);
+}
+.burger span:first-child { top: 0; }
+.burger span:last-child { bottom: 0; }
+.burgerOpen span:first-child { transform: translateY(5px) rotate(45deg); }
+.burgerOpen span:last-child { transform: translateY(-5px) rotate(-45deg); }
+
+@media (max-width: 600px) {
+  .inquire { display: none; }
+  .logoSub { display: none; }
+}
