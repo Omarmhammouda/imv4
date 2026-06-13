@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__models_explore",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__balance",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__generate_video",
+      "mcp__b58bff29-4af2-48fc-9dbd-5bdcd0afd3b9__generate_image",
+      "Bash(ffmpeg -version)",
+      "Bash(brew install *)",
+      "Bash(npx --yes create-next-app@latest . --typescript --app --src-dir --no-tailwind --no-eslint --import-alias \"@/*\" --use-npm --turbopack)"
+    ]
+  }
+}
