@@ -16,7 +16,7 @@ export default function WorkPage() {
       <PageHero
         eyebrow="The Map"
         title={["Murals,", "by region"]}
-        lead="Every wall has a postcode. Browse the work the way the city sees it — select a region to explore the murals that landed there."
+        lead="Every wall has a postcode. Browse the work the way the city sees it. Select a region to explore the murals that landed there."
         meta={[
           { label: "Total murals", value: `${totalMurals}+` },
           { label: "Regions", value: String(regions.length) },
@@ -30,7 +30,6 @@ export default function WorkPage() {
       </section>
 
       <CtaBand
-        eyebrow="Start a project"
         title="Got a wall in mind?"
         ctaLabel="Start a project"
         ctaHref="/contact"

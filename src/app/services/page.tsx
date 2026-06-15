@@ -7,14 +7,14 @@ import s from "@/components/site/sections.module.css";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Mural design & painting, brand identity, environmental graphics, art direction and mural care — from a single studio.",
+    "Mural design & painting, brand identity, environmental graphics, art direction and mural care, from a single studio.",
 };
 
 const SERVICES = [
   {
     k: "01",
     title: "Mural Design & Painting",
-    body: "The flagship. Concept, sketch and full production at any scale — free-hand aerosol, hand-cut stencils and brushwork, on lifts or rope access.",
+    body: "The flagship. Concept, sketch and full production at any scale: free-hand aerosol, hand-cut stencils and brushwork, on lifts or rope access.",
     tags: ["Concept", "Stencil", "Free-hand", "Rigging"],
     aside: "Flagship",
   },
@@ -54,7 +54,7 @@ export default function ServicesPage() {
       <PageHero
         eyebrow="What we do"
         title={["Murals.", "Identity.", "Everything", "in between."]}
-        lead="Five ways we work — usually in combination. Most projects start with a wall and end up reshaping the whole brand."
+        lead="Five ways we work, usually in combination. Most projects start with a wall and end up reshaping the whole brand."
       />
 
       <section className="section container">
@@ -93,7 +93,7 @@ export default function ServicesPage() {
               production, care. Bigger programs run on a retainer.
             </p>
             <p>
-              We&rsquo;re happiest brought in early — before the scaffolding is booked — so
+              We&rsquo;re happiest brought in early, before the scaffolding is booked, so
               the wall and the brand can be designed as one thing.
             </p>
           </Reveal>
@@ -101,7 +101,6 @@ export default function ServicesPage() {
       </section>
 
       <CtaBand
-        eyebrow="Scope a project"
         title="Tell us what the wall needs to say."
         ctaLabel="Start a project"
         ctaHref="/contact"

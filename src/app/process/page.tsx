@@ -7,7 +7,7 @@ import s from "@/components/site/sections.module.css";
 export const metadata: Metadata = {
   title: "Process",
   description:
-    "From blank wall to landmark — our six-phase process: discovery, concept, approvals, production, reveal and care.",
+    "From blank wall to landmark. Our six-phase process: discovery, concept, approvals, production, reveal and care.",
 };
 
 const STEPS = [
@@ -26,7 +26,7 @@ const STEPS = [
   {
     k: "03",
     title: "Approvals & permits",
-    body: "We handle landlords, councils and heritage where needed — access plans, method statements, insurance, the lot.",
+    body: "We handle landlords, councils and heritage where needed: access plans, method statements, insurance, the lot.",
     aside: "Weeks 3–5",
   },
   {
@@ -38,7 +38,7 @@ const STEPS = [
   {
     k: "05",
     title: "Reveal & launch",
-    body: "Photography, film and a launch moment — plus the brand assets so the mural lives online as loudly as it does on the street.",
+    body: "Photography, film and a launch moment, plus the brand assets so the mural lives online as loudly as it does on the street.",
     aside: "Week 8",
   },
   {
@@ -55,7 +55,7 @@ export default function ProcessPage() {
       <PageHero
         eyebrow="How it works"
         title={["From blank wall", "to landmark"]}
-        lead="A repeatable six-phase process that keeps big, public work calm, on-budget and on-brief — without flattening the art."
+        lead="A repeatable six-phase process that keeps big, public work calm, on-budget and on-brief, without flattening the art."
       />
 
       <section className="section container">
@@ -76,7 +76,6 @@ export default function ProcessPage() {
       </section>
 
       <CtaBand
-        eyebrow="Ready when you are"
         title="Start at phase one with us."
         ctaLabel="Begin a project"
         ctaHref="/contact"

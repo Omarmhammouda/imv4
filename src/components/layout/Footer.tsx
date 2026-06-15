@@ -37,7 +37,6 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.call}>
-          <span className="hud accent">Start a project</span>
           <h2 className={styles.callTitle}>
             Let&rsquo;s paint something
             <br />
@@ -93,7 +92,7 @@ export default function Footer() {
           Insomnia Murals
         </span>
         <span className={styles.fine}>Nocturnal studio · Est. 2014</span>
-        <span className={styles.fine}>© {new Date().getFullYear()} — All rights reserved</span>
+        <span className={styles.fine}>© {new Date().getFullYear()} Insomnia Murals. All rights reserved.</span>
       </div>
     </footer>
   );

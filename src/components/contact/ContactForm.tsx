@@ -8,8 +8,8 @@ type Status = "idle" | "submitting" | "success";
 type Errors = Partial<Record<"name" | "email" | "message", string>>;
 
 const PROJECT_TYPES = [
-  "Mural — exterior",
-  "Mural — interior",
+  "Mural (exterior)",
+  "Mural (interior)",
   "Brand identity",
   "Environmental / wayfinding",
   "Festival / curation",
@@ -60,7 +60,7 @@ export default function ContactForm() {
         </span>
         <h2 className={styles.successTitle}>Message received.</h2>
         <p className={styles.successBody}>
-          Thanks — we&rsquo;ll reply within two working days. For anything urgent, message us
+          Thanks. We&rsquo;ll reply within two working days. For anything urgent, message us
           on WhatsApp and mention you just filled the form.
         </p>
         <button
