@@ -77,13 +77,6 @@
   transform: translateY(-4px);
   background: color-mix(in srgb, var(--surface) 70%, transparent);
 }
-.cardKicker {
-  font-family: var(--font-mono);
-  font-size: var(--fs-caption);
-  font-weight: 700;
-  letter-spacing: var(--tracking-wide);
-  color: var(--accent);
-}
 .cardTitle {
   font-family: var(--font-display);
   font-weight: 700;

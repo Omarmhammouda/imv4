@@ -7,11 +7,6 @@
   border-top: 1px solid var(--line);
   padding-top: clamp(2rem, 5vw, 4rem);
 }
-.text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
 .title {
   font-family: var(--font-display);
   font-weight: 800;
