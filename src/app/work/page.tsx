@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import WorkMap from "@/components/work/WorkMap";
 import CtaBand from "@/components/site/CtaBand";
-import { totalMurals, regions } from "@/lib/projects";
+import { getContent } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Work",
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     "Murals organised by region — a map of the walls we've made across the city. Downtown, harbour, industrial and beyond.",
 };
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  const { regions, totalMurals, settings } = await getContent();
   return (
     <>
       <PageHero
@@ -20,13 +21,13 @@ export default function WorkPage() {
         meta={[
           { label: "Total murals", value: `${totalMurals}+` },
           { label: "Regions", value: String(regions.length) },
-          { label: "Since", value: "2014" },
+          { label: "Since", value: String(settings.foundingYear) },
           { label: "Cities", value: "1 (and counting)" },
         ]}
       />
 
       <section className="section container" aria-label="Mural regions">
-        <WorkMap />
+        <WorkMap regions={regions} />
       </section>
 
       <CtaBand

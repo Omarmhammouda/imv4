@@ -3,7 +3,20 @@ import PageHero from "@/components/site/PageHero";
 import CtaBand from "@/components/site/CtaBand";
 import Reveal from "@/components/ui/Reveal";
 import { withBase } from "@/lib/asset";
+import { getContent } from "@/lib/content";
 import s from "@/components/site/sections.module.css";
+
+/** Render a stat value with its trailing symbol (+, k, ×) in the accent colour. */
+function StatValue({ value }: { value: string }) {
+  const m = value.match(/^([\d.,]+)(.*)$/);
+  if (!m) return <>{value}</>;
+  return (
+    <>
+      {m[1]}
+      {m[2] && <em>{m[2]}</em>}
+    </>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Studio",
@@ -30,7 +43,8 @@ const VALUES = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { stats } = await getContent();
   return (
     <>
       <PageHero
@@ -63,28 +77,14 @@ export default function AboutPage() {
       {/* stats */}
       <section className="section container">
         <Reveal as="div" className={s.statRow} stagger={0.08}>
-          <div className={s.stat}>
-            <span className={s.statNum}>
-              10<em>+</em>
-            </span>
-            <span className={s.statLabel}>Years sleepless</span>
-          </div>
-          <div className={s.stat}>
-            <span className={s.statNum}>61</span>
-            <span className={s.statLabel}>Murals delivered</span>
-          </div>
-          <div className={s.stat}>
-            <span className={s.statNum}>
-              14<em>k</em>
-            </span>
-            <span className={s.statLabel}>m² painted</span>
-          </div>
-          <div className={s.stat}>
-            <span className={s.statNum}>
-              9<em>×</em>
-            </span>
-            <span className={s.statLabel}>Design awards</span>
-          </div>
+          {stats.map((stat) => (
+            <div key={stat.label} className={s.stat}>
+              <span className={s.statNum}>
+                <StatValue value={stat.value} />
+              </span>
+              <span className={s.statLabel}>{stat.label}</span>
+            </div>
+          ))}
         </Reveal>
       </section>
 

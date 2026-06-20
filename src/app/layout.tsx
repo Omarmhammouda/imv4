@@ -7,7 +7,7 @@ import CustomCursor from "@/components/cursor/CustomCursor";
 import Header from "@/components/layout/Header";
 import Menu from "@/components/layout/Menu";
 import Footer from "@/components/layout/Footer";
-import FloatingContact from "@/components/layout/FloatingContact";
+import { getContent } from "@/lib/content";
 
 // Display: industrial urban-signage condensed grotesque (murals + title-screen).
 const display = Big_Shoulders({
@@ -71,9 +71,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { settings } = await getContent();
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
@@ -83,10 +84,9 @@ export default function RootLayout({
         <SmoothScrollProvider>
           <CustomCursor />
           <Header />
-          <Menu />
+          <Menu settings={settings} />
           <main id="main">{children}</main>
-          <Footer />
-          <FloatingContact />
+          <Footer settings={settings} />
         </SmoothScrollProvider>
         <div className="grain" aria-hidden="true" />
       </body>

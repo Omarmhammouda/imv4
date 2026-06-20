@@ -7,6 +7,7 @@ import { gsap } from "gsap";
 import { useExperience } from "@/lib/store";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { sfx } from "@/lib/sound";
+import type { Settings } from "@/lib/content";
 import styles from "./Menu.module.css";
 
 const NAV = [
@@ -18,7 +19,7 @@ const NAV = [
   { label: "Contact", href: "/contact", index: "06" },
 ];
 
-export default function Menu() {
+export default function Menu({ settings }: { settings: Settings }) {
   const open = useExperience((s) => s.menuOpen);
   const setMenuOpen = useExperience((s) => s.setMenuOpen);
   const pathname = usePathname();
@@ -128,21 +129,19 @@ export default function Menu() {
         <div className={styles.meta}>
           <div className={styles.metaCol}>
             <span className={styles.metaLabel}>Studio</span>
-            <a href="mailto:hello@insomniamurals.studio" data-cursor="link" className={styles.metaLink}>
-              hello@insomniamurals.studio
+            <a href={`mailto:${settings.email}`} data-cursor="link" className={styles.metaLink}>
+              {settings.email}
             </a>
-            <a href="tel:+10000000000" data-cursor="link" className={styles.metaLink}>
-              +1 (000) 000-0000
+            <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} data-cursor="link" className={styles.metaLink}>
+              {settings.phone}
             </a>
           </div>
           <div className={styles.metaCol}>
             <span className={styles.metaLabel}>Follow</span>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Instagram</a>
-            <a href="https://behance.net" target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Behance</a>
+            <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Instagram</a>
+            <a href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Behance</a>
           </div>
-          <p className={styles.metaTag}>
-            Nocturnal studio for large-scale murals &amp; brand identity.
-          </p>
+          <p className={styles.metaTag}>{settings.tagline}.</p>
         </div>
       </div>
     </div>

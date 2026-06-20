@@ -6,8 +6,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useExperience } from "@/lib/store";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
-import { chapters } from "@/lib/chapters";
+import type { Chapter as ChapterData } from "@/lib/chapters";
 import { sfx } from "@/lib/sound";
+import { mq } from "@/lib/motion";
 import Preloader from "@/components/preloader/Preloader";
 import VideoStage from "./VideoStage";
 import Chapter from "./Chapter";
@@ -20,7 +21,7 @@ const HeroScene = dynamic(() => import("@/components/hero/HeroScene"), {
   ssr: false,
 });
 
-export default function HomeExperience() {
+export default function HomeExperience({ chapters }: { chapters: ChapterData[] }) {
   const wrap = useRef<HTMLDivElement>(null);
   const layers = useRef<HTMLDivElement>(null);
   const active = useExperience((s) => s.activeChapter);
@@ -33,8 +34,11 @@ export default function HomeExperience() {
   const [outro, setOutro] = useState(false);
   const prevActive = useRef(0);
 
-  // pointer parallax (rAF-throttled, written straight to the store)
+  // pointer parallax (rAF-throttled, written straight to the store).
+  // Desktop / fine-pointer only — on touch, tap-synthesised mousemoves would
+  // shove the can off-centre with no way to reset it.
   useEffect(() => {
+    if (mq.isTouch()) return;
     let raf = 0;
     const pending = { x: 0, y: 0 };
     const onMove = (e: MouseEvent) => {
@@ -135,13 +139,13 @@ export default function HomeExperience() {
       <Preloader />
 
       <div ref={layers} className={styles.layers}>
-        <VideoStage />
+        <VideoStage chapters={chapters} />
         <HeroScene />
       </div>
 
       <div ref={wrap} className={styles.chapters}>
         {chapters.map((c) => (
-          <Chapter key={c.id} chapter={c} />
+          <Chapter key={c.id} chapter={c} total={chapters.length} />
         ))}
       </div>
 
@@ -154,7 +158,7 @@ export default function HomeExperience() {
       </div>
 
       <MediaControls />
-      <ChapterNav />
+      <ChapterNav chapters={chapters} />
     </>
   );
 }

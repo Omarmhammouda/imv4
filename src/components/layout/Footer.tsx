@@ -3,36 +3,37 @@
 import Link from "next/link";
 import { Cta } from "@/components/ui/Cta";
 import { sfx } from "@/lib/sound";
+import type { Settings } from "@/lib/content";
 import styles from "./Footer.module.css";
 
-const COLUMNS = [
-  {
-    title: "Studio",
-    links: [
-      { label: "About", href: "/about" },
-      { label: "Process", href: "/process" },
-      { label: "Services", href: "/services" },
-    ],
-  },
-  {
-    title: "Work",
-    links: [
-      { label: "All murals", href: "/work" },
-      { label: "Downtown Core", href: "/work" },
-      { label: "Industrial District", href: "/work" },
-    ],
-  },
-  {
-    title: "Connect",
-    links: [
-      { label: "hello@insomniamurals.studio", href: "mailto:hello@insomniamurals.studio" },
-      { label: "Instagram", href: "https://instagram.com" },
-      { label: "Behance", href: "https://behance.net" },
-    ],
-  },
-];
+export default function Footer({ settings }: { settings: Settings }) {
+  const COLUMNS = [
+    {
+      title: "Studio",
+      links: [
+        { label: "About", href: "/about" },
+        { label: "Process", href: "/process" },
+        { label: "Services", href: "/services" },
+      ],
+    },
+    {
+      title: "Work",
+      links: [
+        { label: "All murals", href: "/work" },
+        { label: "Downtown Core", href: "/work" },
+        { label: "Industrial District", href: "/work" },
+      ],
+    },
+    {
+      title: "Connect",
+      links: [
+        { label: settings.email, href: `mailto:${settings.email}` },
+        { label: "Instagram", href: settings.instagramUrl },
+        { label: "Behance", href: settings.behanceUrl },
+      ],
+    },
+  ];
 
-export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
@@ -89,10 +90,10 @@ export default function Footer() {
       <div className={`container ${styles.bottom}`}>
         <span className={styles.logo}>
           <span className={styles.logoMark} aria-hidden="true" />
-          Insomnia Murals
+          {settings.studioName}
         </span>
-        <span className={styles.fine}>Nocturnal studio · Est. 2014</span>
-        <span className={styles.fine}>© {new Date().getFullYear()} Insomnia Murals. All rights reserved.</span>
+        <span className={styles.fine}>Nocturnal studio · Est. {settings.foundingYear}</span>
+        <span className={styles.fine}>© {new Date().getFullYear()} {settings.studioName}. All rights reserved.</span>
       </div>
     </footer>
   );

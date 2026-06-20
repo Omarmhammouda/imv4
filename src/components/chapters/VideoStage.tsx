@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { chapters } from "@/lib/chapters";
+import type { Chapter } from "@/lib/chapters";
 import { useExperience } from "@/lib/store";
 import { withBase } from "@/lib/asset";
 import styles from "./VideoStage.module.css";
@@ -12,7 +12,7 @@ import styles from "./VideoStage.module.css";
  * the rest are paused. Sources load lazily (active + next). Reduced motion or
  * a user pause holds on the poster frame.
  */
-export default function VideoStage() {
+export default function VideoStage({ chapters }: { chapters: Chapter[] }) {
   const active = useExperience((s) => s.activeChapter);
   const paused = useExperience((s) => s.videoPaused);
   const reduced = useExperience((s) => s.reducedMotion);

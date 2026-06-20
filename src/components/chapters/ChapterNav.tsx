@@ -2,11 +2,11 @@
 
 import { useExperience } from "@/lib/store";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
-import { chapters } from "@/lib/chapters";
+import type { Chapter } from "@/lib/chapters";
 import { sfx } from "@/lib/sound";
 import styles from "./ChapterNav.module.css";
 
-export default function ChapterNav() {
+export default function ChapterNav({ chapters }: { chapters: Chapter[] }) {
   const active = useExperience((s) => s.activeChapter);
   const started = useExperience((s) => s.started);
   const { scrollTo } = useLenis();

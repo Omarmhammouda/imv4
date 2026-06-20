@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { regions } from "@/lib/projects";
+import type { Region } from "@/lib/projects";
 import { useExperience } from "@/lib/store";
 import { sfx } from "@/lib/sound";
 import { withBase } from "@/lib/asset";
 import styles from "./WorkMap.module.css";
 
-export default function WorkMap() {
+export default function WorkMap({ regions }: { regions: Region[] }) {
   const [activeId, setActiveId] = useState(regions[0].id);
   const reduced = useExperience((s) => s.reducedMotion);
   const active = regions.find((r) => r.id === activeId) ?? regions[0];

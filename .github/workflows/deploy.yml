@@ -23,6 +23,10 @@ jobs:
     env:
       GITHUB_PAGES: "true"
       NEXT_PUBLIC_BASE_PATH: "/imv4"
+      # Add these as repo secrets (Settings → Secrets and variables → Actions).
+      # Empty → the site falls back to the bundled content, so this is safe.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
