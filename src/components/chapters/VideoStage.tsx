@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { chapters } from "@/lib/chapters";
+import type { Chapter } from "@/lib/chapters";
 import { useExperience } from "@/lib/store";
+import { withBase } from "@/lib/asset";
 import styles from "./VideoStage.module.css";
 
 /**
@@ -11,7 +12,7 @@ import styles from "./VideoStage.module.css";
  * the rest are paused. Sources load lazily (active + next). Reduced motion or
  * a user pause holds on the poster frame.
  */
-export default function VideoStage() {
+export default function VideoStage({ chapters }: { chapters: Chapter[] }) {
   const active = useExperience((s) => s.activeChapter);
   const paused = useExperience((s) => s.videoPaused);
   const reduced = useExperience((s) => s.reducedMotion);
@@ -53,7 +54,7 @@ export default function VideoStage() {
           }}
           className={styles.video}
           style={{ opacity: i === active ? 1 : 0 }}
-          poster={c.poster}
+          poster={withBase(c.poster)}
           muted
           loop
           playsInline
@@ -61,8 +62,8 @@ export default function VideoStage() {
         >
           {loaded.has(i) && (
             <>
-              <source src={c.video.replace(".mp4", ".webm")} type="video/webm" />
-              <source src={c.video} type="video/mp4" />
+              <source src={withBase(c.video.replace(".mp4", ".webm"))} type="video/webm" />
+              <source src={withBase(c.video)} type="video/mp4" />
             </>
           )}
         </video>

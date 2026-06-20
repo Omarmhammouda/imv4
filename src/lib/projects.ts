@@ -9,6 +9,8 @@ export interface Project {
   client: string;
   year: number;
   size: string; // e.g. "24m × 18m"
+  images?: string[]; // one or more photos (first = cover); falls back to placeholders
+  video?: string; // optional hover clip (falls back to a rotating placeholder)
 }
 
 export interface Region {
@@ -27,7 +29,7 @@ export const regions: Region[] = [
     id: "downtown",
     name: "Downtown Core",
     count: 14,
-    blurb: "High-rise gable ends and transit hubs — the murals the whole city drives past.",
+    blurb: "High-rise gable ends and transit hubs. The murals the whole city drives past.",
     video: "/videos/scale.mp4",
     poster: "/posters/scale.jpg",
     featured: [
@@ -52,7 +54,7 @@ export const regions: Region[] = [
     id: "northside",
     name: "Northside",
     count: 12,
-    blurb: "Residential blocks and school yards — community walls painted with the people on them.",
+    blurb: "Residential blocks and school yards. Community walls painted with the people on them.",
     video: "/videos/craft.mp4",
     poster: "/posters/craft.jpg",
     featured: [
@@ -65,7 +67,7 @@ export const regions: Region[] = [
     id: "oldtown",
     name: "Old Town",
     count: 7,
-    blurb: "Heritage brick and tucked-away laneways — restraint, patina and detail.",
+    blurb: "Heritage brick and tucked-away laneways. Restraint, patina, detail.",
     video: "/videos/legacy.mp4",
     poster: "/posters/legacy.jpg",
     featured: [
@@ -77,7 +79,7 @@ export const regions: Region[] = [
     id: "industrial",
     name: "Industrial District",
     count: 11,
-    blurb: "Raw concrete, silos and rail sidings — the biggest, boldest canvases we get.",
+    blurb: "Raw concrete, silos and rail sidings. The biggest, boldest canvases we get.",
     video: "/videos/impact.mp4",
     poster: "/posters/impact.jpg",
     featured: [
@@ -89,7 +91,7 @@ export const regions: Region[] = [
     id: "heights",
     name: "The Heights",
     count: 8,
-    blurb: "Hillside neighbourhoods and lookout walls — murals that meet the horizon.",
+    blurb: "Hillside neighbourhoods and lookout walls. Murals that meet the horizon.",
     video: "/videos/vision.mp4",
     poster: "/posters/vision.jpg",
     featured: [

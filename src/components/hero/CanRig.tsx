@@ -42,9 +42,9 @@ export default function CanRig({ children }: { children: React.ReactNode }) {
     const bob = reducedMotion ? 0 : Math.sin(state.clock.elapsedTime * 0.8) * 0.07;
     // portrait: float the can centred + high + back so the copy (anchored low)
     // never fights it. landscape: glide to the side opposite the text.
-    const sideX = portrait ? 0 : dir * 1.6;
-    const targetX = sideX + pointer.x * 0.3;
-    const targetY = bob - scrollProgress * 0.5 + (portrait ? 1.7 : 0);
+    // portrait: dead-centre, no pointer parallax (touch has no hover cursor)
+    const targetX = portrait ? 0 : dir * 1.6 + pointer.x * 0.3;
+    const targetY = bob - scrollProgress * 0.5; // vertically centred on all sizes
     const targetZ = -scrollProgress * 1.5 - (portrait ? 3.2 : 0);
 
     // gentle glide on X so the can sweeps between chapters
@@ -52,7 +52,7 @@ export default function CanRig({ children }: { children: React.ReactNode }) {
     g.position.y = damp(g.position.y, targetY, 5, dt);
     g.position.z = damp(g.position.z, targetZ, 4, dt);
 
-    const baseScale = portrait ? 0.58 : 1;
+    const baseScale = portrait ? 0.46 : 1;
     const targetScale = (started ? baseScale : baseScale * 0.85);
     const sc = damp(g.scale.x, targetScale, 4, dt);
     g.scale.setScalar(sc);

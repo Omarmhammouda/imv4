@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import Reveal from "@/components/ui/Reveal";
 import ContactForm from "@/components/contact/ContactForm";
+import { getContent } from "@/lib/content";
 import c from "@/components/contact/contact.module.css";
 
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Start a mural or brand project with Insomnia Murals. Tell us about the wall — we reply within two working days.",
+    "Start a mural or brand project with Insomnia Murals. Tell us about the wall. We reply within two working days.",
 };
 
 const TIPS = [
@@ -17,7 +18,8 @@ const TIPS = [
   "References or a mood you're chasing.",
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { settings } = await getContent();
   return (
     <>
       <PageHero
@@ -35,15 +37,15 @@ export default function ContactPage() {
           <Reveal as="aside" className={c.details}>
             <div className={c.block}>
               <span className={c.blockLabel}>Email</span>
-              <a className={`${c.blockValue} ${c.link}`} href="mailto:hello@insomniamurals.studio" data-cursor="link">
-                hello@insomniamurals.studio
+              <a className={`${c.blockValue} ${c.link}`} href={`mailto:${settings.email}`} data-cursor="link">
+                {settings.email}
               </a>
             </div>
             <div className={c.block}>
               <span className={c.blockLabel}>WhatsApp</span>
               <a
                 className={`${c.blockValue} ${c.link}`}
-                href="https://wa.me/10000000000"
+                href={`https://wa.me/${settings.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-cursor="link"
@@ -54,15 +56,15 @@ export default function ContactPage() {
             <div className={c.block}>
               <span className={c.blockLabel}>Studio</span>
               <span className={c.blockValue}>
-                Unit 7, The Coil Works
+                {settings.addressLine1}
                 <br />
-                14 Lantern Lane
+                {settings.addressLine2}
               </span>
-              <span className="caption">Night entrance off the alley</span>
+              {settings.addressNote && <span className="caption">{settings.addressNote}</span>}
             </div>
             <div className={c.block}>
               <span className={c.blockLabel}>Hours</span>
-              <span className={c.blockValue}>We answer noon&ndash;midnight</span>
+              <span className={c.blockValue}>{settings.hours}</span>
             </div>
             <div className={c.block}>
               <span className={c.blockLabel}>What to include</span>
@@ -77,9 +79,9 @@ export default function ContactPage() {
             <div className={c.block}>
               <span className={c.blockLabel}>Follow</span>
               <span className={c.blockValue}>
-                <a className={c.link} href="https://instagram.com" target="_blank" rel="noopener noreferrer" data-cursor="link">Instagram</a>
+                <a className={c.link} href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Instagram</a>
                 {" · "}
-                <a className={c.link} href="https://behance.net" target="_blank" rel="noopener noreferrer" data-cursor="link">Behance</a>
+                <a className={c.link} href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Behance</a>
               </span>
             </div>
           </Reveal>

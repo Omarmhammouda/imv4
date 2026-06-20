@@ -5,7 +5,6 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@/lib/useGSAP";
 import type { Chapter as ChapterType } from "@/lib/chapters";
-import { chapterCount } from "@/lib/chapters";
 import { Cta } from "@/components/ui/Cta";
 import styles from "./Chapter.module.css";
 
@@ -40,7 +39,13 @@ function Headline({ chapter }: { chapter: ChapterType }) {
   );
 }
 
-export default function Chapter({ chapter }: { chapter: ChapterType }) {
+export default function Chapter({
+  chapter,
+  total,
+}: {
+  chapter: ChapterType;
+  total: number;
+}) {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -103,7 +108,7 @@ export default function Chapter({ chapter }: { chapter: ChapterType }) {
           <div className={styles.meta} data-reveal>
             <span className={styles.index}>
               {String(chapter.index).padStart(2, "0")}
-              <span className={styles.indexTotal}> / {String(chapterCount).padStart(2, "0")}</span>
+              <span className={styles.indexTotal}> / {String(total).padStart(2, "0")}</span>
             </span>
             <span className={styles.label}>{chapter.label}</span>
           </div>

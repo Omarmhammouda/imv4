@@ -2,44 +2,55 @@ import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
 import CtaBand from "@/components/site/CtaBand";
 import Reveal from "@/components/ui/Reveal";
+import { withBase } from "@/lib/asset";
+import { getContent } from "@/lib/content";
 import s from "@/components/site/sections.module.css";
+
+/** Render a stat value with its trailing symbol (+, k, ×) in the accent colour. */
+function StatValue({ value }: { value: string }) {
+  const m = value.match(/^([\d.,]+)(.*)$/);
+  if (!m) return <>{value}</>;
+  return (
+    <>
+      {m[1]}
+      {m[2] && <em>{m[2]}</em>}
+    </>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Studio",
   description:
-    "Insomnia Murals is a nocturnal studio for large-scale murals and brand identity — sleepless craft, fearless scale, colour with intent.",
+    "Insomnia Murals is a nocturnal studio for large-scale murals and brand identity. Sleepless craft, fearless scale, colour with intent.",
 };
 
 const VALUES = [
   {
-    k: "01",
     title: "Nocturnal craft",
     body: "We do our best thinking after dark. Quiet streets, long exposures, and the patience a great wall demands.",
   },
   {
-    k: "02",
     title: "Scale without fear",
-    body: "Ten storeys or ten feet — we plan, permit and produce work that holds up at architectural size.",
+    body: "Ten storeys or ten feet. We plan, permit and produce work that holds up at architectural size.",
   },
   {
-    k: "03",
     title: "Colour with intent",
     body: "Mostly monochrome, one decisive accent. Restraint is what makes the red land.",
   },
   {
-    k: "04",
     title: "Built to last",
     body: "UV-stable systems, sealed surfaces, documented and maintained. Landmarks, not billboards.",
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { stats } = await getContent();
   return (
     <>
       <PageHero
         eyebrow="The Studio"
         title={["A studio that", "keeps the city", "awake"]}
-        lead="Insomnia Murals began in a warehouse at 3 a.m. with one ladder, two cans and a wall nobody wanted. A decade later we paint landmarks — and build the brands behind them."
+        lead="Insomnia Murals began in a warehouse at 3 a.m. with one ladder, two cans and a wall nobody wanted. A decade later we paint landmarks, and build the brands behind them."
       />
 
       {/* manifesto */}
@@ -51,11 +62,11 @@ export default function AboutPage() {
           <Reveal as="div" className={s.splitBody}>
             <p>
               We&rsquo;re a small, senior team of muralists, designers and producers. No
-              account managers, no telephone game — you work with the people holding the
+              account managers, no telephone game. You work with the people holding the
               cans.
             </p>
             <p>
-              Half our work is paint and lifts; the other half is identity — the logo,
+              Half our work is paint and lifts; the other half is identity: the logo,
               type and system that lives on the wall and everywhere else the brand shows
               up. We think the two should be designed together.
             </p>
@@ -66,28 +77,14 @@ export default function AboutPage() {
       {/* stats */}
       <section className="section container">
         <Reveal as="div" className={s.statRow} stagger={0.08}>
-          <div className={s.stat}>
-            <span className={s.statNum}>
-              10<em>+</em>
-            </span>
-            <span className={s.statLabel}>Years sleepless</span>
-          </div>
-          <div className={s.stat}>
-            <span className={s.statNum}>61</span>
-            <span className={s.statLabel}>Murals delivered</span>
-          </div>
-          <div className={s.stat}>
-            <span className={s.statNum}>
-              14<em>k</em>
-            </span>
-            <span className={s.statLabel}>m² painted</span>
-          </div>
-          <div className={s.stat}>
-            <span className={s.statNum}>
-              9<em>×</em>
-            </span>
-            <span className={s.statLabel}>Design awards</span>
-          </div>
+          {stats.map((stat) => (
+            <div key={stat.label} className={s.stat}>
+              <span className={s.statNum}>
+                <StatValue value={stat.value} />
+              </span>
+              <span className={s.statLabel}>{stat.label}</span>
+            </div>
+          ))}
         </Reveal>
       </section>
 
@@ -98,21 +95,20 @@ export default function AboutPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className={s.featureImg}
-              src="/textures/can-cutout.png"
-              alt="The Insomnia Murals signature spray can — matte black body, white label, red cap."
+              src={withBase("/textures/can-cutout.png")}
+              alt="The Insomnia Murals signature spray can: matte black body, white label, red cap."
               width={1120}
               height={1500}
               loading="lazy"
             />
           </Reveal>
           <Reveal as="div" className={s.featureText}>
-            <span className="hud accent">The tool</span>
             <h2 className={s.splitTitle} style={{ maxWidth: "14ch" }}>
               One can. The whole language.
             </h2>
             <p>
-              Our house aerosol — matte black, paper label, a single red cap — is the
-              studio in miniature. High-pressure for fills, low for fades, and a steady
+              Our house aerosol, matte black with a paper label and a single red cap, is
+              the studio in miniature. High-pressure for fills, low for fades, and a steady
               hand for the line that makes it ours.
             </p>
           </Reveal>
@@ -122,13 +118,11 @@ export default function AboutPage() {
       {/* values */}
       <section className="section container">
         <Reveal as="div" className={s.sectionHead}>
-          <span className="hud accent">How we work</span>
           <h2>Four things we refuse to compromise.</h2>
         </Reveal>
         <Reveal as="div" className={s.cards} stagger={0.08}>
           {VALUES.map((v) => (
-            <div key={v.k} className={s.card}>
-              <span className={s.cardKicker}>{v.k}</span>
+            <div key={v.title} className={s.card}>
               <h3 className={s.cardTitle}>{v.title}</h3>
               <p className={s.cardBody}>{v.body}</p>
             </div>
@@ -137,7 +131,6 @@ export default function AboutPage() {
       </section>
 
       <CtaBand
-        eyebrow="Work with us"
         title="Bring us your most impossible wall."
         ctaLabel="Inquire"
         ctaHref="/contact"

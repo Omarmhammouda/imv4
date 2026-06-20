@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Syne, Space_Mono } from "next/font/google";
+import { Big_Shoulders, Hanken_Grotesk, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
@@ -7,25 +7,26 @@ import CustomCursor from "@/components/cursor/CustomCursor";
 import Header from "@/components/layout/Header";
 import Menu from "@/components/layout/Menu";
 import Footer from "@/components/layout/Footer";
-import FloatingContact from "@/components/layout/FloatingContact";
+import { getContent } from "@/lib/content";
 
-const inter = Inter({
+// Display: industrial urban-signage condensed grotesque (murals + title-screen).
+const display = Big_Shoulders({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-bigshoulders",
   display: "swap",
 });
 
-const syne = Syne({
+// Body: clean, highly legible humanist grotesque.
+const body = Hanken_Grotesk({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-syne",
+  variable: "--font-hanken",
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
+// HUD / numerics: characterful monospace for counters and chapter index.
+const mono = Spline_Sans_Mono({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-spacemono",
+  variable: "--font-spline",
   display: "swap",
 });
 
@@ -70,11 +71,12 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { settings } = await getContent();
   return (
-    <html lang="en" className={`${inter.variable} ${syne.variable} ${spaceMono.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
         <a href="#main" className="skip-link">
           Skip to content
@@ -82,10 +84,9 @@ export default function RootLayout({
         <SmoothScrollProvider>
           <CustomCursor />
           <Header />
-          <Menu />
+          <Menu settings={settings} />
           <main id="main">{children}</main>
-          <Footer />
-          <FloatingContact />
+          <Footer settings={settings} />
         </SmoothScrollProvider>
         <div className="grain" aria-hidden="true" />
       </body>

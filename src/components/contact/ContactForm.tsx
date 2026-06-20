@@ -2,14 +2,15 @@
 
 import { useRef, useState } from "react";
 import { sfx } from "@/lib/sound";
+import { getSupabase } from "@/lib/supabase";
 import styles from "./ContactForm.module.css";
 
-type Status = "idle" | "submitting" | "success";
+type Status = "idle" | "submitting" | "success" | "error";
 type Errors = Partial<Record<"name" | "email" | "message", string>>;
 
 const PROJECT_TYPES = [
-  "Mural — exterior",
-  "Mural — interior",
+  "Mural (exterior)",
+  "Mural (interior)",
   "Brand identity",
   "Environmental / wayfinding",
   "Festival / curation",
@@ -36,7 +37,7 @@ export default function ContactForm() {
     return next;
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const next = validate(data);
@@ -48,8 +49,26 @@ export default function ContactForm() {
     }
     sfx.select();
     setStatus("submitting");
-    // No backend in this build — simulate a send, then confirm.
-    window.setTimeout(() => setStatus("success"), 900);
+
+    const sb = getSupabase();
+    if (sb) {
+      const { error } = await sb.from("inquiries").insert({
+        name: String(data.get("name") ?? "").trim(),
+        email: String(data.get("email") ?? "").trim(),
+        project_type: String(data.get("type") ?? ""),
+        budget: String(data.get("budget") ?? ""),
+        message: String(data.get("message") ?? "").trim(),
+      });
+      if (error) {
+        console.error("inquiry insert failed", error);
+        setStatus("error");
+        return;
+      }
+    } else {
+      // No Supabase configured yet — simulate a send so the flow still works.
+      await new Promise((r) => window.setTimeout(r, 700));
+    }
+    setStatus("success");
   }
 
   if (status === "success") {
@@ -60,7 +79,7 @@ export default function ContactForm() {
         </span>
         <h2 className={styles.successTitle}>Message received.</h2>
         <p className={styles.successBody}>
-          Thanks — we&rsquo;ll reply within two working days. For anything urgent, message us
+          Thanks. We&rsquo;ll reply within two working days. For anything urgent, message us
           on WhatsApp and mention you just filled the form.
         </p>
         <button
@@ -176,9 +195,13 @@ export default function ContactForm() {
           <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
         </svg>
       </button>
-      <p className={styles.note}>
-        We reply within two working days. No spam, ever.
-      </p>
+      {status === "error" ? (
+        <p className={styles.error} role="alert">
+          Couldn&rsquo;t send that just now. Please email us directly at hello@insomniamurals.studio.
+        </p>
+      ) : (
+        <p className={styles.note}>We reply within two working days. No spam, ever.</p>
+      )}
     </form>
   );
 }

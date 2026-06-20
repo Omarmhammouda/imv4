@@ -7,7 +7,25 @@
   pointer-events: none;
 }
 
+/* backdrop fades in once content scrolls under the header */
+.header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg-deep) 86%, transparent);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border-bottom: 1px solid var(--line);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out-expo);
+  pointer-events: none;
+}
+.header[data-scrolled]::before {
+  opacity: 1;
+}
+
 .inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
