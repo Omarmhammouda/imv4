@@ -161,24 +161,8 @@ insert into public.regions (slug, sort, name, mural_count, blurb, video, poster)
 ('heights', 6, 'The Heights', 8, 'Hillside neighbourhoods and lookout walls. Murals that meet the horizon.', '/videos/vision.mp4', '/posters/vision.jpg')
 on conflict (slug) do nothing;
 
--- Murals. Leave `images` null to use rotating placeholders, or set an array of
--- photo paths (first = cover). See "Adding photos" at the bottom of this file.
-insert into public.projects (region_slug, sort, title, client, year, size) values
-('downtown', 1, 'Sleepless Atlas', 'Meridian Tower', 2024, '32m × 21m'),
-('downtown', 2, 'Neon Cartography', 'City Transit Authority', 2023, '18m × 9m'),
-('downtown', 3, 'After Hours', 'Lumen Hotels', 2022, '12m × 16m'),
-('harbor', 1, 'Tide Memory', 'Riverside Collective', 2024, '22m × 11m'),
-('harbor', 2, 'Saltwater Hymn', 'Port Authority', 2023, '14m × 14m'),
-('northside', 1, 'Block Party', 'Northside Council', 2024, '16m × 8m'),
-('northside', 2, 'Recess', 'Glenview School', 2023, '10m × 6m'),
-('northside', 3, 'Family Tree', 'Habitat Trust', 2022, '9m × 12m'),
-('oldtown', 1, 'Patina', 'Heritage Society', 2024, '8m × 5m'),
-('oldtown', 2, 'The Long Now', 'Old Town BID', 2022, '11m × 7m'),
-('industrial', 1, 'Foundry', 'Ironworks Lofts', 2024, '28m × 19m'),
-('industrial', 2, 'Conveyor', 'Rail Freight Co.', 2023, '40m × 7m'),
-('heights', 1, 'Overlook', 'Heights Association', 2024, '15m × 10m'),
-('heights', 2, 'Skyward', 'Summit Developments', 2023, '20m × 13m')
-on conflict do nothing;
+-- Murals: none seeded — add your real murals (see "Adding mural photos" below).
+-- Each mural is a row in public.projects whose region_slug matches a region above.
 
 insert into public.stats (sort, value, label) values
 (1, '10+', 'Years sleepless'),
