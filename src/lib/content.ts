@@ -62,23 +62,37 @@ export interface Mural {
   size: string;
   regionName: string;
   regionSlug: string;
-  images: string[]; // one or more photos (first = cover)
-  video: string; // hover clip
+  images: string[]; // real photos only (may be empty) — drives the lightbox
+  video: string; // real preview video, or "" — autoplays as the card cover
+  cover: string; // poster image: first real photo, else a placeholder
 }
 
 // Rotating placeholder visuals so the gallery looks varied before real mural
 // photos are added (a project's own `images`/`video` override these).
 const ROTATION = ["vision", "craft", "scale", "collaboration", "impact", "legacy"];
 
+// Treat empty / placeholder-ish text ("null", "NULL", "n/a", …) as not-set, so
+// values typed into the Supabase Table Editor by hand don't become broken URLs.
+function cleanStr(v: unknown): string | undefined {
+  if (typeof v !== "string") return undefined;
+  const s = v.trim();
+  if (!s) return undefined;
+  if (["null", "nil", "na", "n/a", "none", "undefined"].includes(s.toLowerCase()))
+    return undefined;
+  return s;
+}
+
 function buildMurals(regions: Region[]): Mural[] {
   const murals: Mural[] = [];
   let i = 0;
   for (const r of regions) {
     for (const p of r.featured) {
-      const rot = ROTATION[i % ROTATION.length];
       const placeholders = [0, 1, 2].map(
         (k) => `/posters/${ROTATION[(i + k) % ROTATION.length]}.jpg`,
       );
+      const realImages = (p.images ?? [])
+        .map(cleanStr)
+        .filter((x): x is string => Boolean(x));
       murals.push({
         title: p.title,
         client: p.client,
@@ -86,8 +100,9 @@ function buildMurals(regions: Region[]): Mural[] {
         size: p.size,
         regionName: r.name,
         regionSlug: r.id,
-        images: p.images && p.images.length ? p.images : placeholders,
-        video: p.video || `/videos/${rot}.mp4`,
+        images: realImages, // real photos only (drives lightbox)
+        video: cleanStr(p.video) ?? "", // real preview video, else ""
+        cover: realImages[0] ?? placeholders[0], // poster
       });
       i++;
     }
