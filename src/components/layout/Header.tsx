@@ -31,13 +31,19 @@ export default function Header() {
     });
   }, [visible]);
 
-  // Backdrop appears once content scrolls under the header so it never collides.
+  // Backdrop so content never collides with the fixed header. Inner pages keep
+  // it on always (reliable regardless of smooth-scroll / scroll-restoration);
+  // the home page stays transparent over the hero and fades it in on scroll.
   useEffect(() => {
+    if (!onHome) {
+      setScrolled(true);
+      return;
+    }
     const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [onHome]);
 
   return (
     <header
