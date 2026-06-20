@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Local Claude Code settings (per-machine)
 .claude/settings.local.json
+
+# Local content working doc (not part of the site)
+Insomnia-Murals-Content-Intake.xlsx

@@ -123,6 +123,17 @@ export default function WorkGallery({
     sfx.select();
   };
 
+  if (murals.length === 0) {
+    return (
+      <div className={styles.empty}>
+        <p className={styles.emptyTitle}>No murals here yet.</p>
+        <p className={styles.emptyText}>
+          The wall&rsquo;s still wet. New work is on its way.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className={styles.filters} aria-label="Filter murals by region">
