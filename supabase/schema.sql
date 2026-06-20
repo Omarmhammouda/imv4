@@ -1,7 +1,8 @@
 -- ============================================================================
--- Insomnia Murals — Supabase schema + seed
--- Run this once in the Supabase SQL Editor (Dashboard → SQL → New query).
--- Safe to re-run: tables use "if not exists" and seeds use "on conflict".
+-- Insomnia Murals — complete Supabase schema + seed
+-- Run this ONCE in the Supabase SQL Editor (Dashboard → SQL → New query).
+-- This is the single source of truth: tables, Row-Level Security, and a seed
+-- of the current site content. Safe to re-run (idempotent).
 -- ============================================================================
 
 -- ---------- SETTINGS (single row: contact details, socials, brand) ----------
@@ -40,7 +41,7 @@ create table if not exists public.chapters (
   align          text not null default 'left'  -- 'left' | 'right'
 );
 
--- ---------- REGIONS (work map) ----------
+-- ---------- REGIONS (neighbourhoods the work is grouped/filtered by) ----------
 create table if not exists public.regions (
   slug         text primary key,
   sort         int  not null,
@@ -51,7 +52,7 @@ create table if not exists public.regions (
   poster       text
 );
 
--- ---------- PROJECTS (featured murals per region) ----------
+-- ---------- PROJECTS (the individual murals shown on /work) ----------
 create table if not exists public.projects (
   id           bigint generated always as identity primary key,
   region_slug  text not null references public.regions(slug) on delete cascade,
@@ -59,7 +60,9 @@ create table if not exists public.projects (
   title        text not null,
   client       text,
   year         int,
-  size         text
+  size         text,
+  images       text[],   -- one or more photo URLs/paths (first = cover); null → placeholders
+  video        text      -- optional hover clip
 );
 
 -- ---------- STATS (about page) ----------
@@ -95,7 +98,6 @@ alter table public.inquiries enable row level security;
 
 do $$
 begin
-  -- public read policies
   if not exists (select 1 from pg_policies where tablename='settings' and policyname='public read settings') then
     create policy "public read settings" on public.settings for select to anon, authenticated using (true);
   end if;
@@ -111,7 +113,6 @@ begin
   if not exists (select 1 from pg_policies where tablename='stats' and policyname='public read stats') then
     create policy "public read stats" on public.stats for select to anon, authenticated using (true);
   end if;
-  -- inquiries: insert only (no select policy = nobody can read via the API)
   if not exists (select 1 from pg_policies where tablename='inquiries' and policyname='anyone can submit') then
     create policy "anyone can submit" on public.inquiries for insert to anon, authenticated with check (true);
   end if;
@@ -160,6 +161,8 @@ insert into public.regions (slug, sort, name, mural_count, blurb, video, poster)
 ('heights', 6, 'The Heights', 8, 'Hillside neighbourhoods and lookout walls. Murals that meet the horizon.', '/videos/vision.mp4', '/posters/vision.jpg')
 on conflict (slug) do nothing;
 
+-- Murals. Leave `images` null to use rotating placeholders, or set an array of
+-- photo paths (first = cover). See "Adding photos" at the bottom of this file.
 insert into public.projects (region_slug, sort, title, client, year, size) values
 ('downtown', 1, 'Sleepless Atlas', 'Meridian Tower', 2024, '32m × 21m'),
 ('downtown', 2, 'Neon Cartography', 'City Transit Authority', 2023, '18m × 9m'),
@@ -183,3 +186,29 @@ insert into public.stats (sort, value, label) values
 (3, '14k', 'm² painted'),
 (4, '9x', 'Design awards')
 on conflict do nothing;
+
+-- ============================================================================
+-- Adding mural photos (one or more per mural)
+-- ----------------------------------------------------------------------------
+-- `projects.images` is a text array; the first item is the cover. Example:
+--
+--   update public.projects
+--   set images = array['/work/sleepless-atlas-1.jpg',
+--                      '/work/sleepless-atlas-2.jpg',
+--                      '/work/sleepless-atlas-3.jpg']
+--   where title = 'Sleepless Atlas';
+--
+-- Append one:
+--   update public.projects
+--   set images = array_append(coalesce(images, '{}'), '/work/extra.jpg')
+--   where title = 'Sleepless Atlas';
+--
+-- Add a brand-new mural:
+--   insert into public.projects (region_slug, sort, title, client, year, size, images)
+--   values ('downtown', 4, 'Your Mural', 'Client', 2025, '20m × 12m',
+--           array['/work/your-mural-1.jpg', '/work/your-mural-2.jpg']);
+--
+-- Images: commit files under public/work/ (then use '/work/name.jpg') or use
+-- full Supabase Storage public URLs. Murals with null `images` show rotating
+-- placeholders. Redeploy after edits to publish.
+-- ============================================================================

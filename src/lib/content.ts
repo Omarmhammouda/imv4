@@ -5,7 +5,6 @@ import {
 } from "./chapters";
 import {
   regions as fallbackRegions,
-  totalMurals as fallbackTotal,
   type Region,
   type Project,
 } from "./projects";
@@ -55,20 +54,64 @@ export const fallbackStats: Stat[] = [
   { value: "9×", label: "Design awards" },
 ];
 
+/** A single mural — the unit the Work page is built around. */
+export interface Mural {
+  title: string;
+  client: string;
+  year: number;
+  size: string;
+  regionName: string;
+  regionSlug: string;
+  images: string[]; // one or more photos (first = cover)
+  video: string; // hover clip
+}
+
+// Rotating placeholder visuals so the gallery looks varied before real mural
+// photos are added (a project's own `images`/`video` override these).
+const ROTATION = ["vision", "craft", "scale", "collaboration", "impact", "legacy"];
+
+function buildMurals(regions: Region[]): Mural[] {
+  const murals: Mural[] = [];
+  let i = 0;
+  for (const r of regions) {
+    for (const p of r.featured) {
+      const rot = ROTATION[i % ROTATION.length];
+      const placeholders = [0, 1, 2].map(
+        (k) => `/posters/${ROTATION[(i + k) % ROTATION.length]}.jpg`,
+      );
+      murals.push({
+        title: p.title,
+        client: p.client,
+        year: p.year,
+        size: p.size,
+        regionName: r.name,
+        regionSlug: r.id,
+        images: p.images && p.images.length ? p.images : placeholders,
+        video: p.video || `/videos/${rot}.mp4`,
+      });
+      i++;
+    }
+  }
+  return murals;
+}
+
 export interface SiteContent {
   settings: Settings;
   chapters: Chapter[];
   regions: Region[];
+  murals: Mural[];
   stats: Stat[];
   totalMurals: number;
 }
 
+const fallbackMurals = buildMurals(fallbackRegions);
 const fallbackContent: SiteContent = {
   settings: fallbackSettings,
   chapters: fallbackChapters,
   regions: fallbackRegions,
+  murals: fallbackMurals,
   stats: fallbackStats,
-  totalMurals: fallbackTotal,
+  totalMurals: fallbackMurals.length,
 };
 
 /**
@@ -120,6 +163,10 @@ export const getContent = cache(async (): Promise<SiteContent> => {
         client: String(p.client ?? ""),
         year: Number(p.year ?? 0),
         size: String(p.size ?? ""),
+        images: Array.isArray(p.images)
+          ? (p.images as unknown[]).map(String).filter(Boolean)
+          : undefined,
+        video: p.video ? String(p.video) : undefined,
       });
       projByRegion.set(key, arr);
     }
@@ -161,13 +208,15 @@ export const getContent = cache(async (): Promise<SiteContent> => {
       }),
     );
 
+    const finalRegions = mappedRegions.length ? mappedRegions : fallbackRegions;
+    const murals = buildMurals(finalRegions);
     return {
       settings: mappedSettings,
       chapters: mappedChapters.length ? mappedChapters : fallbackChapters,
-      regions: mappedRegions.length ? mappedRegions : fallbackRegions,
+      regions: finalRegions,
+      murals,
       stats: mappedStats.length ? mappedStats : fallbackStats,
-      totalMurals:
-        mappedRegions.reduce((n, r) => n + (r.count || 0), 0) || fallbackTotal,
+      totalMurals: murals.length,
     };
   } catch (e) {
     console.warn("[content] Supabase fetch failed — using fallback content", e);

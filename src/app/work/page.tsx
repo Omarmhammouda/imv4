@@ -1,33 +1,33 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/site/PageHero";
-import WorkMap from "@/components/work/WorkMap";
+import WorkGallery from "@/components/work/WorkGallery";
 import CtaBand from "@/components/site/CtaBand";
 import { getContent } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Work",
   description:
-    "Murals organised by region — a map of the walls we've made across the city. Downtown, harbour, industrial and beyond.",
+    "Every mural we've made — browse the work piece by piece and filter by neighbourhood.",
 };
 
 export default async function WorkPage() {
-  const { regions, totalMurals, settings } = await getContent();
+  const { murals, regions, totalMurals, settings } = await getContent();
   return (
     <>
       <PageHero
-        eyebrow="The Map"
-        title={["Murals,", "by region"]}
-        lead="Every wall has a postcode. Browse the work the way the city sees it. Select a region to explore the murals that landed there."
+        eyebrow="The Work"
+        title={["Every wall", "we've signed"]}
+        lead="The full wall, piece by piece. Browse every mural we've put up and filter by the neighbourhood it lives in."
         meta={[
-          { label: "Total murals", value: `${totalMurals}+` },
+          { label: "Murals", value: String(totalMurals) },
           { label: "Regions", value: String(regions.length) },
           { label: "Since", value: String(settings.foundingYear) },
           { label: "Cities", value: "1 (and counting)" },
         ]}
       />
 
-      <section className="section container" aria-label="Mural regions">
-        <WorkMap regions={regions} />
+      <section className="section container" aria-label="All murals">
+        <WorkGallery murals={murals} regions={regions} />
       </section>
 
       <CtaBand

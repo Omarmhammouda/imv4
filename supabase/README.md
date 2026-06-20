@@ -21,12 +21,22 @@ before you connect Supabase.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    Then re-run the deploy workflow (or push) — the next build pulls from Supabase.
 
+> **Switching to a new Supabase project?** Run `schema.sql` on the new project,
+> then update the **URL + anon key** in both `.env.local` (local) and the two
+> GitHub Actions secrets (production), and redeploy. Old keys stop working as
+> soon as the old project is deleted.
+
 ## Editing content
 
 Edit rows in the Supabase Table Editor (`settings`, `chapters`, `regions`,
 `projects`, `stats`). Because content is baked at build time, **trigger a redeploy**
 to publish changes: push any commit, or Actions → "Deploy to GitHub Pages" → Run
 workflow.
+
+**Murals** live in `projects` — one row per mural (set `region_slug` to a region's
+slug). The `images` column is a text array of photo paths/URLs (first = cover);
+leave it null for rotating placeholders. See the bottom of `schema.sql` for
+copy-paste examples.
 
 ## Reading inquiries
 

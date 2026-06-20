@@ -9,6 +9,8 @@ export interface Project {
   client: string;
   year: number;
   size: string; // e.g. "24m × 18m"
+  images?: string[]; // one or more photos (first = cover); falls back to placeholders
+  video?: string; // optional hover clip (falls back to a rotating placeholder)
 }
 
 export interface Region {
