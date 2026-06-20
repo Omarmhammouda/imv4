@@ -118,6 +118,14 @@
   max-width: 42ch;
 }
 
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.chapter[data-align="right"] .ctaRow { justify-content: flex-end; }
+
 @media (max-width: 768px) {
   /* anchor copy to the lower portion; the can floats high + back above it */
   .chapter { align-items: flex-end; padding-bottom: clamp(6rem, 18vh, 9rem); }

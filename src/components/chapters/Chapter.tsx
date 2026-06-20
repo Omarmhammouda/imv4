@@ -121,7 +121,12 @@ export default function Chapter({
             {chapter.body}
           </p>
 
-          <div data-reveal>
+          <div className={styles.ctaRow} data-reveal>
+            {chapter.index === 1 && (
+              <Cta href="/work" variant="solid" size="lg">
+                View the work
+              </Cta>
+            )}
             <Cta href={chapter.cta.href} variant="outline" size="lg">
               {chapter.cta.label}
             </Cta>
