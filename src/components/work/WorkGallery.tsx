@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { Mural } from "@/lib/content";
 import type { Region } from "@/lib/projects";
 import { useExperience } from "@/lib/store";
@@ -20,72 +20,65 @@ function MuralCard({
   reduced: boolean;
   onOpen: () => void;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const photoCount = mural.images.length;
+  const photoCount = mural.images.length; // real photos
+  const hasVideo = Boolean(mural.video) && !reduced;
+  const clickable = photoCount > 0; // lightbox only when there are real photos
+  const localVideo = mural.video.startsWith("/");
 
-  const onEnter = () => {
-    sfx.hover();
-    if (reduced) return;
-    const v = videoRef.current;
-    if (v) {
-      const p = v.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    }
-  };
-  const onLeave = () => {
-    const v = videoRef.current;
-    if (v) {
-      v.pause();
-      v.currentTime = 0;
-    }
-  };
+  const interactive = clickable
+    ? {
+        role: "button" as const,
+        tabIndex: 0,
+        "data-cursor": "link",
+        "data-cursor-label": "View",
+        onClick: () => {
+          sfx.select();
+          onOpen();
+        },
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            sfx.select();
+            onOpen();
+          }
+        },
+      }
+    : {};
 
   return (
     <article
       className={styles.card}
       style={{ animationDelay: `${Math.min(index, 12) * 0.04}s` }}
-      role="button"
-      tabIndex={0}
-      aria-label={`${mural.title}, ${mural.regionName} — view ${photoCount} photo${photoCount > 1 ? "s" : ""}`}
-      data-cursor="link"
-      data-cursor-label="View"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onClick={() => {
-        sfx.select();
-        onOpen();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          sfx.select();
-          onOpen();
-        }
-      }}
+      aria-label={`${mural.title}, ${mural.regionName}${clickable ? ` — view ${photoCount} photo${photoCount > 1 ? "s" : ""}` : ""}`}
+      onMouseEnter={() => sfx.hover()}
+      {...interactive}
     >
       <div className={styles.media}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className={styles.poster}
-          src={withBase(mural.images[0])}
-          alt={`${mural.title} — mural for ${mural.client}`}
-          loading="lazy"
-        />
-        {!reduced && (
+        {hasVideo ? (
           // eslint-disable-next-line jsx-a11y/media-has-caption
           <video
-            ref={videoRef}
-            className={styles.video}
+            className={styles.poster}
+            autoPlay
             muted
             loop
             playsInline
-            preload="none"
-            poster={withBase(mural.images[0])}
+            preload="metadata"
+            poster={withBase(mural.cover)}
             aria-hidden="true"
           >
-            <source src={withBase(mural.video.replace(".mp4", ".webm"))} type="video/webm" />
+            {localVideo && (
+              <source src={withBase(mural.video.replace(".mp4", ".webm"))} type="video/webm" />
+            )}
             <source src={withBase(mural.video)} type="video/mp4" />
           </video>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            className={styles.poster}
+            src={withBase(mural.cover)}
+            alt={`${mural.title} — mural for ${mural.client}`}
+            loading="lazy"
+          />
         )}
         <span className={styles.region}>{mural.regionName}</span>
         {photoCount > 1 && (

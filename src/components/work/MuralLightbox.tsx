@@ -37,7 +37,7 @@ export default function MuralLightbox({
     };
   }, [mural, onClose, stop, start]);
 
-  if (!mural) return null;
+  if (!mural || mural.images.length === 0) return null;
   const count = mural.images.length;
   const go = (d: number) => {
     sfx.hover();
