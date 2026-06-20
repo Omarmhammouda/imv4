@@ -91,6 +91,9 @@
 }
 
 @media (max-width: 600px) {
-  .nowLabel { display: none; }
-  .center { min-width: 0; }
+  /* collapse the dots so the pill stays compact and clears the
+     pause control + chat button at the bottom of small screens */
+  .dots { display: none; }
+  .center { min-width: 0; gap: 0; }
+  .nav { gap: var(--space-2xs); }
 }

@@ -11,14 +11,21 @@ export default function CustomCursor() {
   const labelRef = useRef<HTMLSpanElement>(null);
   const [enabled, setEnabled] = useState(false);
 
+  // 1. Enable only on fine-pointer (non-touch) devices.
   useEffect(() => {
-    if (mq.isTouch()) return;
-    setEnabled(true);
-    document.body.classList.add("cursor-custom");
+    if (!mq.isTouch()) setEnabled(true);
+  }, []);
 
-    const ring = ringRef.current!;
-    const dot = dotRef.current!;
-    const label = labelRef.current!;
+  // 2. Wire everything up AFTER the cursor elements are actually in the DOM.
+  //    (Runs when `enabled` flips true, so the refs are populated.)
+  useEffect(() => {
+    if (!enabled) return;
+    const ring = ringRef.current;
+    const dot = dotRef.current;
+    const label = labelRef.current;
+    if (!ring || !dot || !label) return;
+
+    document.body.classList.add("cursor-custom");
 
     const ringX = gsap.quickTo(ring, "x", { duration: 0.45, ease: "power3.out" });
     const ringY = gsap.quickTo(ring, "y", { duration: 0.45, ease: "power3.out" });
@@ -26,11 +33,14 @@ export default function CustomCursor() {
     const dotY = gsap.quickTo(dot, "y", { duration: 0.08, ease: "power2.out" });
 
     let visible = false;
+    const reveal = () => {
+      if (visible) return;
+      visible = true;
+      gsap.to([ring, dot], { autoAlpha: 1, duration: 0.3 });
+    };
+
     const onMove = (e: MouseEvent) => {
-      if (!visible) {
-        visible = true;
-        gsap.to([ring, dot], { autoAlpha: 1, duration: 0.3 });
-      }
+      reveal();
       ringX(e.clientX);
       ringY(e.clientY);
       dotX(e.clientX);
@@ -41,8 +51,7 @@ export default function CustomCursor() {
       const target = (e.target as HTMLElement)?.closest?.("[data-cursor]") as
         | HTMLElement
         | null;
-      const mode = target?.dataset.cursor;
-      ring.dataset.state = mode ?? "default";
+      ring.dataset.state = target?.dataset.cursor ?? "default";
       const text = target?.dataset.cursorLabel ?? "";
       label.textContent = text;
       ring.dataset.hasLabel = text ? "true" : "false";
@@ -50,6 +59,7 @@ export default function CustomCursor() {
 
     const onDown = () => (ring.dataset.pressed = "true");
     const onUp = () => (ring.dataset.pressed = "false");
+    const onEnterWindow = (e: MouseEvent) => onMove(e);
     const onLeaveWindow = () => {
       visible = false;
       gsap.to([ring, dot], { autoAlpha: 0, duration: 0.2 });
@@ -59,6 +69,7 @@ export default function CustomCursor() {
     window.addEventListener("mouseover", onOver);
     window.addEventListener("mousedown", onDown);
     window.addEventListener("mouseup", onUp);
+    document.addEventListener("mouseenter", onEnterWindow);
     document.addEventListener("mouseleave", onLeaveWindow);
 
     return () => {
@@ -66,10 +77,11 @@ export default function CustomCursor() {
       window.removeEventListener("mouseover", onOver);
       window.removeEventListener("mousedown", onDown);
       window.removeEventListener("mouseup", onUp);
+      document.removeEventListener("mouseenter", onEnterWindow);
       document.removeEventListener("mouseleave", onLeaveWindow);
       document.body.classList.remove("cursor-custom");
     };
-  }, []);
+  }, [enabled]);
 
   if (!enabled) return null;
 

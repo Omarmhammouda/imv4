@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useExperience } from "@/lib/store";
 import { sfx } from "@/lib/sound";
@@ -17,6 +17,7 @@ export default function Header() {
   const menuOpen = useExperience((s) => s.menuOpen);
   const setMenuOpen = useExperience((s) => s.setMenuOpen);
   const ref = useRef<HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   const onHome = pathname === "/";
   const visible = !onHome || started;
@@ -30,8 +31,21 @@ export default function Header() {
     });
   }, [visible]);
 
+  // Backdrop appears once content scrolls under the header so it never collides.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header ref={ref} className={styles.header} style={{ opacity: 0 }}>
+    <header
+      ref={ref}
+      className={styles.header}
+      style={{ opacity: 0 }}
+      data-scrolled={scrolled || undefined}
+    >
       <div className={styles.inner}>
         <Magnetic strength={0.25}>
           <Link
