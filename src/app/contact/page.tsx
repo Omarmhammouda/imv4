@@ -86,20 +86,6 @@ export default async function ContactPage() {
                 ))}
               </ul>
             </div>
-            {(settings.instagramUrl || settings.behanceUrl) && (
-              <div className={c.block}>
-                <span className={c.blockLabel}>Follow</span>
-                <span className={c.blockValue}>
-                  {settings.instagramUrl && (
-                    <a className={c.link} href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Instagram</a>
-                  )}
-                  {settings.instagramUrl && settings.behanceUrl && " · "}
-                  {settings.behanceUrl && (
-                    <a className={c.link} href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Behance</a>
-                  )}
-                </span>
-              </div>
-            )}
           </Reveal>
         </div>
       </section>

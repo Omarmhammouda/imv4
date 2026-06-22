@@ -31,15 +31,7 @@ export default function Footer({
     },
     {
       title: "Connect",
-      links: [
-        { label: settings.email, href: `mailto:${settings.email}` },
-        ...(settings.instagramUrl
-          ? [{ label: "Instagram", href: settings.instagramUrl }]
-          : []),
-        ...(settings.behanceUrl
-          ? [{ label: "Behance", href: settings.behanceUrl }]
-          : []),
-      ],
+      links: [{ label: settings.email, href: `mailto:${settings.email}` }],
     },
   ];
 

@@ -138,17 +138,6 @@ export default function Menu({ settings }: { settings: Settings }) {
               </a>
             )}
           </div>
-          {(settings.instagramUrl || settings.behanceUrl) && (
-            <div className={styles.metaCol}>
-              <span className={styles.metaLabel}>Follow</span>
-              {settings.instagramUrl && (
-                <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Instagram</a>
-              )}
-              {settings.behanceUrl && (
-                <a href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Behance</a>
-              )}
-            </div>
-          )}
           <p className={styles.metaTag}>{settings.tagline}.</p>
         </div>
       </div>
