@@ -35,14 +35,15 @@ export interface Stat {
 export const fallbackSettings: Settings = {
   studioName: "Insomnia Murals",
   tagline: "Nocturnal studio for large-scale murals & brand identity",
-  email: "hello@insomniamurals.studio",
-  phone: "+1 (000) 000-0000",
-  whatsapp: "10000000000",
-  instagramUrl: "https://instagram.com",
-  behanceUrl: "https://behance.net",
-  addressLine1: "Unit 7, The Coil Works",
-  addressLine2: "14 Lantern Lane",
-  addressNote: "Night entrance off the alley",
+  email: "info@insomniamurals.com",
+  // phone / address / socials intentionally empty — components hide empty fields
+  phone: "",
+  whatsapp: "",
+  instagramUrl: "",
+  behanceUrl: "",
+  addressLine1: "",
+  addressLine2: "",
+  addressNote: "",
   hours: "We answer noon–midnight",
   foundingYear: 2014,
 };
@@ -199,19 +200,22 @@ export const getContent = cache(async (): Promise<SiteContent> => {
     );
 
     const s = settings.data as Record<string, unknown> | null;
+    // cleanStr() turns empty / "null" / whitespace into undefined, so a field
+    // cleared in Supabase becomes "" and the components hide it (rather than
+    // leaking the fallback or a blank link).
     const mappedSettings: Settings = s
       ? {
-          studioName: String(s.studio_name ?? fallbackSettings.studioName),
-          tagline: String(s.tagline ?? fallbackSettings.tagline),
-          email: String(s.email ?? fallbackSettings.email),
-          phone: String(s.phone ?? fallbackSettings.phone),
-          whatsapp: String(s.whatsapp ?? fallbackSettings.whatsapp),
-          instagramUrl: String(s.instagram_url ?? fallbackSettings.instagramUrl),
-          behanceUrl: String(s.behance_url ?? fallbackSettings.behanceUrl),
-          addressLine1: String(s.address_line1 ?? fallbackSettings.addressLine1),
-          addressLine2: String(s.address_line2 ?? fallbackSettings.addressLine2),
-          addressNote: String(s.address_note ?? fallbackSettings.addressNote),
-          hours: String(s.hours ?? fallbackSettings.hours),
+          studioName: cleanStr(s.studio_name) ?? fallbackSettings.studioName,
+          tagline: cleanStr(s.tagline) ?? fallbackSettings.tagline,
+          email: cleanStr(s.email) ?? fallbackSettings.email,
+          phone: cleanStr(s.phone) ?? "",
+          whatsapp: cleanStr(s.whatsapp) ?? "",
+          instagramUrl: cleanStr(s.instagram_url) ?? "",
+          behanceUrl: cleanStr(s.behance_url) ?? "",
+          addressLine1: cleanStr(s.address_line1) ?? "",
+          addressLine2: cleanStr(s.address_line2) ?? "",
+          addressNote: cleanStr(s.address_note) ?? "",
+          hours: cleanStr(s.hours) ?? fallbackSettings.hours,
           foundingYear: Number(s.founding_year ?? fallbackSettings.foundingYear),
         }
       : fallbackSettings;

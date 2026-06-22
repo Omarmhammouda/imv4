@@ -132,15 +132,23 @@ export default function Menu({ settings }: { settings: Settings }) {
             <a href={`mailto:${settings.email}`} data-cursor="link" className={styles.metaLink}>
               {settings.email}
             </a>
-            <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} data-cursor="link" className={styles.metaLink}>
-              {settings.phone}
-            </a>
+            {settings.phone && (
+              <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} data-cursor="link" className={styles.metaLink}>
+                {settings.phone}
+              </a>
+            )}
           </div>
-          <div className={styles.metaCol}>
-            <span className={styles.metaLabel}>Follow</span>
-            <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Instagram</a>
-            <a href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Behance</a>
-          </div>
+          {(settings.instagramUrl || settings.behanceUrl) && (
+            <div className={styles.metaCol}>
+              <span className={styles.metaLabel}>Follow</span>
+              {settings.instagramUrl && (
+                <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Instagram</a>
+              )}
+              {settings.behanceUrl && (
+                <a href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link" className={styles.metaLink}>Behance</a>
+              )}
+            </div>
+          )}
           <p className={styles.metaTag}>{settings.tagline}.</p>
         </div>
       </div>

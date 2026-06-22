@@ -41,31 +41,41 @@ export default async function ContactPage() {
                 {settings.email}
               </a>
             </div>
-            <div className={c.block}>
-              <span className={c.blockLabel}>WhatsApp</span>
-              <a
-                className={`${c.blockValue} ${c.link}`}
-                href={`https://wa.me/${settings.whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-cursor="link"
-              >
-                Message the studio
-              </a>
-            </div>
-            <div className={c.block}>
-              <span className={c.blockLabel}>Studio</span>
-              <span className={c.blockValue}>
-                {settings.addressLine1}
-                <br />
-                {settings.addressLine2}
-              </span>
-              {settings.addressNote && <span className="caption">{settings.addressNote}</span>}
-            </div>
-            <div className={c.block}>
-              <span className={c.blockLabel}>Hours</span>
-              <span className={c.blockValue}>{settings.hours}</span>
-            </div>
+            {settings.whatsapp && (
+              <div className={c.block}>
+                <span className={c.blockLabel}>WhatsApp</span>
+                <a
+                  className={`${c.blockValue} ${c.link}`}
+                  href={`https://wa.me/${settings.whatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-cursor="link"
+                >
+                  Message the studio
+                </a>
+              </div>
+            )}
+            {settings.addressLine1 && (
+              <div className={c.block}>
+                <span className={c.blockLabel}>Studio</span>
+                <span className={c.blockValue}>
+                  {settings.addressLine1}
+                  {settings.addressLine2 && (
+                    <>
+                      <br />
+                      {settings.addressLine2}
+                    </>
+                  )}
+                </span>
+                {settings.addressNote && <span className="caption">{settings.addressNote}</span>}
+              </div>
+            )}
+            {settings.hours && (
+              <div className={c.block}>
+                <span className={c.blockLabel}>Hours</span>
+                <span className={c.blockValue}>{settings.hours}</span>
+              </div>
+            )}
             <div className={c.block}>
               <span className={c.blockLabel}>What to include</span>
               <ul className={c.tips}>
@@ -76,14 +86,20 @@ export default async function ContactPage() {
                 ))}
               </ul>
             </div>
-            <div className={c.block}>
-              <span className={c.blockLabel}>Follow</span>
-              <span className={c.blockValue}>
-                <a className={c.link} href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Instagram</a>
-                {" · "}
-                <a className={c.link} href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Behance</a>
-              </span>
-            </div>
+            {(settings.instagramUrl || settings.behanceUrl) && (
+              <div className={c.block}>
+                <span className={c.blockLabel}>Follow</span>
+                <span className={c.blockValue}>
+                  {settings.instagramUrl && (
+                    <a className={c.link} href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Instagram</a>
+                  )}
+                  {settings.instagramUrl && settings.behanceUrl && " · "}
+                  {settings.behanceUrl && (
+                    <a className={c.link} href={settings.behanceUrl} target="_blank" rel="noopener noreferrer" data-cursor="link">Behance</a>
+                  )}
+                </span>
+              </div>
+            )}
           </Reveal>
         </div>
       </section>

@@ -28,8 +28,12 @@ export default function Footer({ settings }: { settings: Settings }) {
       title: "Connect",
       links: [
         { label: settings.email, href: `mailto:${settings.email}` },
-        { label: "Instagram", href: settings.instagramUrl },
-        { label: "Behance", href: settings.behanceUrl },
+        ...(settings.instagramUrl
+          ? [{ label: "Instagram", href: settings.instagramUrl }]
+          : []),
+        ...(settings.behanceUrl
+          ? [{ label: "Behance", href: settings.behanceUrl }]
+          : []),
       ],
     },
   ];

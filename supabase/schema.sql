@@ -125,11 +125,18 @@ insert into public.settings (id, studio_name, tagline, email, phone, whatsapp,
   instagram_url, behance_url, address_line1, address_line2, address_note, hours, founding_year)
 values (1, 'Insomnia Murals',
   'Nocturnal studio for large-scale murals & brand identity',
-  'hello@insomniamurals.studio', '+1 (000) 000-0000', '10000000000',
-  'https://instagram.com', 'https://behance.net',
-  'Unit 7, The Coil Works', '14 Lantern Lane', 'Night entrance off the alley',
+  'info@insomniamurals.com', null, null,
+  null, null,
+  null, null, null,
   'We answer noon–midnight', 2014)
 on conflict (id) do nothing;
+-- Existing project? `on conflict do nothing` won't update the row above —
+-- run this to apply these contact details to a settings row that already exists:
+--   update public.settings set
+--     email='info@insomniamurals.com',
+--     phone=null, whatsapp=null, instagram_url=null, behance_url=null,
+--     address_line1=null, address_line2=null, address_note=null
+--   where id=1;
 
 insert into public.chapters (slug, sort, label, line1, line2, line3, emphasis_line, emphasis_word, body, cta_label, cta_href, video, poster, align) values
 ('vision', 1, 'Vision', 'We paint', 'the walls', 'of tomorrow', 2, 'tomorrow',
