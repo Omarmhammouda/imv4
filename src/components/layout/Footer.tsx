@@ -6,7 +6,13 @@ import { sfx } from "@/lib/sound";
 import type { Settings } from "@/lib/content";
 import styles from "./Footer.module.css";
 
-export default function Footer({ settings }: { settings: Settings }) {
+export default function Footer({
+  settings,
+  recentWorks = [],
+}: {
+  settings: Settings;
+  recentWorks?: { title: string; href: string }[];
+}) {
   const COLUMNS = [
     {
       title: "Studio",
@@ -17,11 +23,10 @@ export default function Footer({ settings }: { settings: Settings }) {
       ],
     },
     {
-      title: "Work",
+      title: "Recent work",
       links: [
+        ...recentWorks.map((w) => ({ label: w.title, href: w.href })),
         { label: "All murals", href: "/work" },
-        { label: "Downtown Core", href: "/work" },
-        { label: "Industrial District", href: "/work" },
       ],
     },
     {

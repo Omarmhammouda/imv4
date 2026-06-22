@@ -74,7 +74,11 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { settings } = await getContent();
+  const { settings, murals } = await getContent();
+  const recentWorks = [...murals]
+    .sort((a, b) => (b.year || 0) - (a.year || 0))
+    .slice(0, 2)
+    .map((m) => ({ title: m.title, href: "/work" }));
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
@@ -86,7 +90,7 @@ export default async function RootLayout({
           <Header />
           <Menu settings={settings} />
           <main id="main">{children}</main>
-          <Footer settings={settings} />
+          <Footer settings={settings} recentWorks={recentWorks} />
         </SmoothScrollProvider>
         <div className="grain" aria-hidden="true" />
       </body>
