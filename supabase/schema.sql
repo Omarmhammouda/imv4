@@ -75,14 +75,34 @@ create table if not exists public.stats (
 
 -- ---------- INQUIRIES (contact form submissions) ----------
 create table if not exists public.inquiries (
-  id            uuid primary key default gen_random_uuid(),
-  created_at    timestamptz not null default now(),
-  name          text not null,
-  email         text not null,
-  project_type  text,
-  budget        text,
-  message       text not null
+  id              uuid primary key default gen_random_uuid(),
+  created_at      timestamptz not null default now(),
+  name            text not null,
+  email           text not null,
+  phone           text,
+  project_type    text,
+  budget          text,
+  location        text,          -- city / area of the wall
+  wall_size       text,          -- e.g. "20ft × 12ft"
+  surface         text,          -- brick / concrete / …
+  placement       text,          -- exterior / interior
+  permission      text,          -- owns wall / has permission / …
+  timeline        text,
+  heard_about     text,
+  message         text not null, -- the client's vision
+  wall_photo_url  text           -- optional photo, stored in the wall-photos bucket
 );
+-- For projects created before these columns existed, add the new ones in place:
+alter table public.inquiries
+  add column if not exists phone          text,
+  add column if not exists location       text,
+  add column if not exists wall_size      text,
+  add column if not exists surface        text,
+  add column if not exists placement      text,
+  add column if not exists permission     text,
+  add column if not exists timeline       text,
+  add column if not exists heard_about    text,
+  add column if not exists wall_photo_url text;
 
 -- ============================================================================
 -- ROW LEVEL SECURITY
@@ -115,6 +135,30 @@ begin
   end if;
   if not exists (select 1 from pg_policies where tablename='inquiries' and policyname='anyone can submit') then
     create policy "anyone can submit" on public.inquiries for insert to anon, authenticated with check (true);
+  end if;
+end $$;
+
+-- ============================================================================
+-- STORAGE — optional wall photos attached to an inquiry
+--   bucket "wall-photos": public read, anyone may upload (insert), 10MB images.
+-- ============================================================================
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('wall-photos', 'wall-photos', true, 10485760,
+        array['image/jpeg','image/png','image/webp','image/heic','image/heif'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='anyone can upload wall photos') then
+    create policy "anyone can upload wall photos" on storage.objects
+      for insert to anon, authenticated with check (bucket_id = 'wall-photos');
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='public can read wall photos') then
+    create policy "public can read wall photos" on storage.objects
+      for select to anon, authenticated using (bucket_id = 'wall-photos');
   end if;
 end $$;
 

@@ -22,6 +22,95 @@
   color: var(--fg-muted);
 }
 .label span { color: var(--accent); }
+.label .optional,
+.optional {
+  color: var(--fg-faint);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* grouped sections */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.legend {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-h4);
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  padding: 0 0 var(--space-2xs);
+  margin-bottom: var(--space-2xs);
+  border-bottom: 1px solid var(--line);
+  width: 100%;
+}
+
+/* file upload */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.upload {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 1rem 1.25rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 35%, transparent);
+  color: var(--fg-muted);
+  font-size: var(--fs-body);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease-out-expo), color var(--dur) var(--ease-out-expo), background-color var(--dur) var(--ease-out-expo);
+}
+.upload:hover { border-color: var(--accent); color: var(--fg); }
+.upload u { color: var(--accent); text-underline-offset: 3px; }
+.uploadIcon { width: 20px; height: 20px; flex-shrink: 0; }
+.fileInput:focus-visible + .upload { border-color: var(--accent); }
+
+.fileChosen {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 50%, transparent);
+}
+.fileIcon { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+.fileName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-body);
+  color: var(--fg);
+}
+.fileRemove {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  flex-shrink: 0;
+  transition: color var(--dur) var(--ease-out-expo);
+}
+.fileRemove:hover { color: var(--accent); }
 
 .input {
   width: 100%;

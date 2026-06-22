@@ -17,13 +17,43 @@ const PROJECT_TYPES = [
   "Something else",
 ];
 const BUDGETS = ["Under $10k", "$10k – $25k", "$25k – $75k", "$75k+", "Not sure yet"];
+const SURFACES = [
+  "Not sure",
+  "Brick",
+  "Concrete / cinderblock",
+  "Stucco / plaster",
+  "Wood",
+  "Metal",
+  "Glass",
+  "Other",
+];
+const PLACEMENTS = ["Exterior", "Interior", "Not sure"];
+const PERMISSIONS = [
+  "I own the wall",
+  "I have the owner's permission",
+  "Permission still to arrange",
+  "Not sure",
+];
+const TIMELINES = [
+  "Flexible / no rush",
+  "Within 1 month",
+  "1–3 months",
+  "3–6 months",
+  "Has a fixed deadline",
+];
+const HEARD = ["Instagram", "Word of mouth", "Saw a mural", "Search", "Other"];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_FILE = 10 * 1024 * 1024; // 10MB
+const STUDIO_EMAIL = "info@insomniamurals.com";
 
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Errors>({});
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string>("");
   const formRef = useRef<HTMLFormElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   function validate(data: FormData): Errors {
     const next: Errors = {};
@@ -35,6 +65,24 @@ export default function ContactForm() {
     else if (!EMAIL_RE.test(email)) next.email = "That email doesn't look right.";
     if (message.length < 10) next.message = "A sentence or two about the wall, please.";
     return next;
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setFileError("");
+    const f = e.target.files?.[0] ?? null;
+    if (f && f.size > MAX_FILE) {
+      setFileError("That image is over 10MB — please pick a smaller one.");
+      setFile(null);
+      e.target.value = "";
+      return;
+    }
+    setFile(f);
+  }
+
+  function clearFile() {
+    setFile(null);
+    setFileError("");
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -50,14 +98,40 @@ export default function ContactForm() {
     sfx.select();
     setStatus("submitting");
 
+    const get = (k: string) => String(data.get(k) ?? "").trim();
     const sb = getSupabase();
+
     if (sb) {
+      // Optional wall photo → Supabase Storage (failure never blocks the inquiry)
+      let wallPhotoUrl = "";
+      if (file) {
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await sb.storage
+          .from("wall-photos")
+          .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type || undefined });
+        if (!upErr) {
+          wallPhotoUrl = sb.storage.from("wall-photos").getPublicUrl(path).data.publicUrl;
+        } else {
+          console.error("wall photo upload failed", upErr);
+        }
+      }
+
       const { error } = await sb.from("inquiries").insert({
-        name: String(data.get("name") ?? "").trim(),
-        email: String(data.get("email") ?? "").trim(),
-        project_type: String(data.get("type") ?? ""),
-        budget: String(data.get("budget") ?? ""),
-        message: String(data.get("message") ?? "").trim(),
+        name: get("name"),
+        email: get("email"),
+        phone: get("phone") || null,
+        project_type: get("type"),
+        budget: get("budget"),
+        location: get("location") || null,
+        wall_size: get("size") || null,
+        surface: get("surface") || null,
+        placement: get("placement") || null,
+        permission: get("permission") || null,
+        timeline: get("timeline") || null,
+        heard_about: get("heard") || null,
+        message: get("message"),
+        wall_photo_url: wallPhotoUrl || null,
       });
       if (error) {
         console.error("inquiry insert failed", error);
@@ -77,10 +151,10 @@ export default function ContactForm() {
         <span className={styles.successMark} aria-hidden="true">
           ✓
         </span>
-        <h2 className={styles.successTitle}>Message received.</h2>
+        <h2 className={styles.successTitle}>Inquiry received.</h2>
         <p className={styles.successBody}>
-          Thanks. We&rsquo;ll reply within two working days. For anything urgent, message us
-          on WhatsApp and mention you just filled the form.
+          Thanks — that&rsquo;s exactly what we need to get started. We&rsquo;ll reply within
+          two working days. For anything urgent, email us at {STUDIO_EMAIL}.
         </p>
         <button
           type="button"
@@ -88,6 +162,7 @@ export default function ContactForm() {
           onClick={() => {
             setStatus("idle");
             setErrors({});
+            clearFile();
             formRef.current?.reset();
           }}
           data-cursor="link"
@@ -100,88 +175,237 @@ export default function ContactForm() {
 
   return (
     <form ref={formRef} className={styles.form} onSubmit={onSubmit} noValidate>
-      <div className={styles.field}>
-        <label htmlFor="name" className={styles.label}>
-          Name <span aria-hidden="true">*</span>
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          autoComplete="name"
-          className={styles.input}
-          aria-invalid={errors.name ? "true" : undefined}
-          aria-describedby={errors.name ? "err-name" : undefined}
-        />
-        {errors.name && (
-          <span id="err-name" className={styles.error}>
-            {errors.name}
-          </span>
-        )}
-      </div>
+      {/* ---------------- You ---------------- */}
+      <fieldset className={styles.section}>
+        <legend className={styles.legend}>You</legend>
 
-      <div className={styles.field}>
-        <label htmlFor="email" className={styles.label}>
-          Email <span aria-hidden="true">*</span>
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          className={styles.input}
-          aria-invalid={errors.email ? "true" : undefined}
-          aria-describedby={errors.email ? "err-email" : undefined}
-        />
-        {errors.email && (
-          <span id="err-email" className={styles.error}>
-            {errors.email}
-          </span>
-        )}
-      </div>
-
-      <div className={styles.row2}>
         <div className={styles.field}>
-          <label htmlFor="type" className={styles.label}>
-            Project type
+          <label htmlFor="name" className={styles.label}>
+            Name <span aria-hidden="true">*</span>
           </label>
-          <select id="type" name="type" className={styles.input} defaultValue={PROJECT_TYPES[0]}>
-            {PROJECT_TYPES.map((t) => (
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            className={styles.input}
+            aria-invalid={errors.name ? "true" : undefined}
+            aria-describedby={errors.name ? "err-name" : undefined}
+          />
+          {errors.name && (
+            <span id="err-name" className={styles.error}>
+              {errors.name}
+            </span>
+          )}
+        </div>
+
+        <div className={styles.row2}>
+          <div className={styles.field}>
+            <label htmlFor="email" className={styles.label}>
+              Email <span aria-hidden="true">*</span>
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              className={styles.input}
+              aria-invalid={errors.email ? "true" : undefined}
+              aria-describedby={errors.email ? "err-email" : undefined}
+            />
+            {errors.email && (
+              <span id="err-email" className={styles.error}>
+                {errors.email}
+              </span>
+            )}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="phone" className={styles.label}>
+              Phone <span className={styles.optional}>(optional)</span>
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              className={styles.input}
+            />
+          </div>
+        </div>
+      </fieldset>
+
+      {/* ---------------- The wall ---------------- */}
+      <fieldset className={styles.section}>
+        <legend className={styles.legend}>The wall</legend>
+
+        <div className={styles.row2}>
+          <div className={styles.field}>
+            <label htmlFor="location" className={styles.label}>
+              Location <span className={styles.optional}>(city / area)</span>
+            </label>
+            <input
+              id="location"
+              name="location"
+              type="text"
+              className={styles.input}
+              placeholder="e.g. Brooklyn, NY"
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="size" className={styles.label}>
+              Approx. size <span className={styles.optional}>(optional)</span>
+            </label>
+            <input
+              id="size"
+              name="size"
+              type="text"
+              className={styles.input}
+              placeholder="e.g. 20ft × 12ft"
+            />
+          </div>
+        </div>
+
+        <div className={styles.row2}>
+          <div className={styles.field}>
+            <label htmlFor="surface" className={styles.label}>
+              Surface
+            </label>
+            <select id="surface" name="surface" className={styles.input} defaultValue={SURFACES[0]}>
+              {SURFACES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="placement" className={styles.label}>
+              Placement
+            </label>
+            <select id="placement" name="placement" className={styles.input} defaultValue={PLACEMENTS[0]}>
+              {PLACEMENTS.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="permission" className={styles.label}>
+            Wall permission
+          </label>
+          <select id="permission" name="permission" className={styles.input} defaultValue={PERMISSIONS[3]}>
+            {PERMISSIONS.map((p) => (
+              <option key={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.field}>
+          <span className={styles.label}>
+            Photo of the wall <span className={styles.optional}>(optional)</span>
+          </span>
+          <input
+            ref={fileRef}
+            id="wallphoto"
+            name="wallphoto"
+            type="file"
+            accept="image/*"
+            className={styles.fileInput}
+            onChange={onFileChange}
+          />
+          {file ? (
+            <div className={styles.fileChosen}>
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.fileIcon}>
+                <path d="M4 7h6l2 2h8v9H4z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+              <span className={styles.fileName}>{file.name}</span>
+              <button type="button" className={styles.fileRemove} onClick={clearFile} aria-label="Remove photo" data-cursor="link">
+                Remove
+              </button>
+            </div>
+          ) : (
+            <label htmlFor="wallphoto" className={styles.upload} data-cursor="link">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.uploadIcon}>
+                <path d="M12 16V4M7 9l5-5 5 5M5 20h14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" />
+              </svg>
+              <span>
+                <u>Browse</u> or drop a photo — JPG/PNG, up to 10MB
+              </span>
+            </label>
+          )}
+          {fileError && <span className={styles.error}>{fileError}</span>}
+        </div>
+      </fieldset>
+
+      {/* ---------------- The project ---------------- */}
+      <fieldset className={styles.section}>
+        <legend className={styles.legend}>The project</legend>
+
+        <div className={styles.row2}>
+          <div className={styles.field}>
+            <label htmlFor="type" className={styles.label}>
+              Project type
+            </label>
+            <select id="type" name="type" className={styles.input} defaultValue={PROJECT_TYPES[0]}>
+              {PROJECT_TYPES.map((t) => (
+                <option key={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="budget" className={styles.label}>
+              Budget
+            </label>
+            <select id="budget" name="budget" className={styles.input} defaultValue={BUDGETS[4]}>
+              {BUDGETS.map((b) => (
+                <option key={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="timeline" className={styles.label}>
+            Timeline
+          </label>
+          <select id="timeline" name="timeline" className={styles.input} defaultValue={TIMELINES[0]}>
+            {TIMELINES.map((t) => (
               <option key={t}>{t}</option>
             ))}
           </select>
         </div>
+
         <div className={styles.field}>
-          <label htmlFor="budget" className={styles.label}>
-            Budget
+          <label htmlFor="message" className={styles.label}>
+            Your vision <span aria-hidden="true">*</span>
           </label>
-          <select id="budget" name="budget" className={styles.input} defaultValue={BUDGETS[4]}>
-            {BUDGETS.map((b) => (
-              <option key={b}>{b}</option>
+          <textarea
+            id="message"
+            name="message"
+            rows={5}
+            className={`${styles.input} ${styles.textarea}`}
+            placeholder="What should the mural say or show? Any subject, colours, references, or mood you're chasing?"
+            aria-invalid={errors.message ? "true" : undefined}
+            aria-describedby={errors.message ? "err-message" : undefined}
+          />
+          {errors.message && (
+            <span id="err-message" className={styles.error}>
+              {errors.message}
+            </span>
+          )}
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="heard" className={styles.label}>
+            How did you hear about us? <span className={styles.optional}>(optional)</span>
+          </label>
+          <select id="heard" name="heard" className={styles.input} defaultValue="">
+            <option value="">Select one…</option>
+            {HEARD.map((h) => (
+              <option key={h}>{h}</option>
             ))}
           </select>
         </div>
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor="message" className={styles.label}>
-          About the wall <span aria-hidden="true">*</span>
-        </label>
-        <textarea
-          id="message"
-          name="message"
-          rows={5}
-          className={`${styles.input} ${styles.textarea}`}
-          placeholder="Where is it, how big, and what should it say?"
-          aria-invalid={errors.message ? "true" : undefined}
-          aria-describedby={errors.message ? "err-message" : undefined}
-        />
-        {errors.message && (
-          <span id="err-message" className={styles.error}>
-            {errors.message}
-          </span>
-        )}
-      </div>
+      </fieldset>
 
       <button
         type="submit"
@@ -197,7 +421,7 @@ export default function ContactForm() {
       </button>
       {status === "error" ? (
         <p className={styles.error} role="alert">
-          Couldn&rsquo;t send that just now. Please email us directly at hello@insomniamurals.studio.
+          Couldn&rsquo;t send that just now. Please email us directly at {STUDIO_EMAIL}.
         </p>
       ) : (
         <p className={styles.note}>We reply within two working days. No spam, ever.</p>
