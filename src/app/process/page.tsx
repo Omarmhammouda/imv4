@@ -26,7 +26,7 @@ const STEPS = [
   {
     k: "03",
     title: "Approvals & permits",
-    body: "We handle landlords, councils and heritage where needed: access plans, method statements, insurance, the lot.",
+    body: "We handle landlords, the city and historic boards where needed: access plans, safety plans, insurance — the works.",
     aside: "Weeks 3–5",
   },
   {

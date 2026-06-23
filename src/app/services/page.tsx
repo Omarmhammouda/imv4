@@ -28,7 +28,7 @@ const SERVICES = [
   {
     k: "03",
     title: "Environmental & Wayfinding",
-    body: "Supergraphics, signage and wayfinding that turn lobbies, car parks and campuses into places people can read at a glance.",
+    body: "Supergraphics, signage and wayfinding that turn lobbies, parking garages and campuses into places people can read at a glance.",
     tags: ["Supergraphics", "Signage", "Wayfinding"],
     aside: "Spatial",
   },

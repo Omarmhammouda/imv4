@@ -193,7 +193,7 @@ export default function ContactForm() {
         <h2 className={styles.successTitle}>Inquiry received.</h2>
         <p className={styles.successBody}>
           Thanks — that&rsquo;s exactly what we need to get started. We&rsquo;ll reply within
-          two working days. For anything urgent, email us at {STUDIO_EMAIL}.
+          two business days. For anything urgent, email us at {STUDIO_EMAIL}.
         </p>
         <button
           type="button"
@@ -463,7 +463,7 @@ export default function ContactForm() {
           Couldn&rsquo;t send that just now. Please email us directly at {STUDIO_EMAIL}.
         </p>
       ) : (
-        <p className={styles.note}>We reply within two working days. No spam, ever.</p>
+        <p className={styles.note}>We reply within two business days. No spam, ever.</p>
       )}
     </form>
   );

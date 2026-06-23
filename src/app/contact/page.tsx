@@ -8,7 +8,7 @@ import c from "@/components/contact/contact.module.css";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Start a mural or brand project with Insomnia Murals. Tell us about the wall. We reply within two working days.",
+    "Start a mural or brand project with Insomnia Murals. Tell us about the wall. We reply within two business days.",
 };
 
 const TIPS = [
