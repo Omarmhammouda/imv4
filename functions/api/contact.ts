@@ -39,8 +39,10 @@ export const onRequestPost = async (context: {
     !env.BREVO_LIST_ID && "BREVO_LIST_ID",
   ].filter(Boolean);
   if (missing.length) {
-    console.error("[contact] Missing env var(s):", missing.join(", "));
-    return json({ ok: false, error: "Email service not configured", missing }, 500);
+    // TEMP diagnostic: which BREVO* var NAMES the function actually sees (no values).
+    const brevoKeysSeen = Object.keys(env).filter((k) => k.startsWith("BREVO"));
+    console.error("[contact] Missing:", missing.join(", "), "| BREVO keys seen:", brevoKeysSeen);
+    return json({ ok: false, error: "Email service not configured", missing, brevoKeysSeen }, 500);
   }
 
   const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
