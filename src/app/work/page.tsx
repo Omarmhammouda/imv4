@@ -22,7 +22,6 @@ export default async function WorkPage() {
           { label: "Murals", value: String(totalMurals) },
           { label: "Regions", value: String(regions.length) },
           { label: "Since", value: String(settings.foundingYear) },
-          { label: "Cities", value: "1 (and counting)" },
         ]}
       />
 
