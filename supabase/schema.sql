@@ -140,11 +140,12 @@ end $$;
 
 -- ============================================================================
 -- STORAGE — optional wall photos attached to an inquiry
---   bucket "wall-photos": public read, anyone may upload (insert), 10MB images.
+--   bucket "wall-photos": public read, anyone may upload (insert), 20MB images.
 -- ============================================================================
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('wall-photos', 'wall-photos', true, 10485760,
-        array['image/jpeg','image/png','image/webp','image/heic','image/heif'])
+values ('wall-photos', 'wall-photos', true, 20971520,
+        array['image/jpeg','image/png','image/webp','image/heic','image/heif',
+              'image/gif','image/avif','image/bmp','image/tiff'])
 on conflict (id) do update
   set public = excluded.public,
       file_size_limit = excluded.file_size_limit,

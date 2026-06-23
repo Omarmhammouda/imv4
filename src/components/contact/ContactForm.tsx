@@ -44,8 +44,21 @@ const TIMELINES = [
 const HEARD = ["Instagram", "Word of mouth", "Saw a mural", "Search", "Other"];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_FILE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE = 20 * 1024 * 1024; // 20MB
 const STUDIO_EMAIL = "info@insomniamurals.com";
+
+// Browsers sometimes report an empty file.type (HEIC, some pickers); supabase-js
+// then defaults to text/plain, which the bucket rejects. Infer a real image type.
+const TYPE_BY_EXT: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+  gif: "image/gif", heic: "image/heic", heif: "image/heif", avif: "image/avif",
+  bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff",
+};
+function imageContentType(file: File): string {
+  if (file.type && file.type.startsWith("image/")) return file.type;
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  return TYPE_BY_EXT[ext] || "image/jpeg";
+}
 
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
@@ -71,7 +84,7 @@ export default function ContactForm() {
     setFileError("");
     const f = e.target.files?.[0] ?? null;
     if (f && f.size > MAX_FILE) {
-      setFileError("That image is over 10MB — please pick a smaller one.");
+      setFileError("That image is over 20MB — please pick a smaller one.");
       setFile(null);
       e.target.value = "";
       return;
@@ -109,7 +122,7 @@ export default function ContactForm() {
         const path = `${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await sb.storage
           .from("wall-photos")
-          .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type || undefined });
+          .upload(path, file, { cacheControl: "3600", upsert: false, contentType: imageContentType(file) });
         if (!upErr) {
           wallPhotoUrl = sb.storage.from("wall-photos").getPublicUrl(path).data.publicUrl;
         } else {
