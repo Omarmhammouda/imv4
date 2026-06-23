@@ -34,21 +34,29 @@ export const onRequestPost = async (context: {
   // (6) Validate the email is present before calling Brevo.
   if (!email) return json({ ok: false, error: "Email is required" }, 400);
 
-  const missing = [
-    !env.BREVO_API_KEY && "BREVO_API_KEY",
-    !env.BREVO_LIST_ID && "BREVO_LIST_ID",
-  ].filter(Boolean);
+  // Read env vars, tolerating accidental whitespace in the dashboard var NAME
+  // (e.g. "BREVO_API_KEY " with a trailing space won't match env.BREVO_API_KEY).
+  const readEnv = (name: string): string => {
+    const rec = env as unknown as Record<string, unknown>;
+    if (typeof rec[name] === "string" && rec[name]) return rec[name] as string;
+    for (const [k, v] of Object.entries(rec)) {
+      if (k.trim() === name && typeof v === "string" && v) return v;
+    }
+    return "";
+  };
+  const apiKey = readEnv("BREVO_API_KEY");
+  const listId = readEnv("BREVO_LIST_ID");
+
+  const missing = [!apiKey && "BREVO_API_KEY", !listId && "BREVO_LIST_ID"].filter(Boolean);
   if (missing.length) {
-    // TEMP diagnostic: which BREVO* var NAMES the function actually sees (no values).
-    const brevoKeysSeen = Object.keys(env).filter((k) => k.startsWith("BREVO"));
-    console.error("[contact] Missing:", missing.join(", "), "| BREVO keys seen:", brevoKeysSeen);
-    return json({ ok: false, error: "Email service not configured", missing, brevoKeysSeen }, 500);
+    console.error("[contact] Missing env var(s):", missing.join(", "));
+    return json({ ok: false, error: "Email service not configured", missing }, 500);
   }
 
   const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
     method: "POST",
     headers: {
-      "api-key": env.BREVO_API_KEY,
+      "api-key": apiKey,
       "content-type": "application/json",
       accept: "application/json",
     },
@@ -56,7 +64,7 @@ export const onRequestPost = async (context: {
       email,
       // Only FIRSTNAME for now — other attributes 400 unless created in Brevo first.
       attributes: name ? { FIRSTNAME: name } : undefined,
-      listIds: [Number(env.BREVO_LIST_ID)],
+      listIds: [Number(listId)],
       updateEnabled: true, // update existing contacts instead of erroring
     }),
   });
