@@ -422,7 +422,7 @@ export default function ContactForm() {
             name="message"
             rows={5}
             className={`${styles.input} ${styles.textarea}`}
-            placeholder="What should the mural say or show? Any subject, colours, references, or mood you're chasing?"
+            placeholder="What should the mural say or show? Any subject, colors, references, or mood you're chasing?"
             aria-invalid={errors.message ? "true" : undefined}
             aria-describedby={errors.message ? "err-message" : undefined}
           />

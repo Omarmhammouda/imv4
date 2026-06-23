@@ -6,7 +6,7 @@ import { withBase } from "@/lib/asset";
 import { getContent } from "@/lib/content";
 import s from "@/components/site/sections.module.css";
 
-/** Render a stat value with its trailing symbol (+, k, ×) in the accent colour. */
+/** Render a stat value with its trailing symbol (+, k, ×) in the accent color. */
 function StatValue({ value }: { value: string }) {
   const m = value.match(/^([\d.,]+)(.*)$/);
   if (!m) return <>{value}</>;
@@ -21,7 +21,7 @@ function StatValue({ value }: { value: string }) {
 export const metadata: Metadata = {
   title: "Studio",
   description:
-    "Insomnia Murals is a nocturnal studio for large-scale murals and brand identity. Sleepless craft, fearless scale, colour with intent.",
+    "Insomnia Murals is a nocturnal studio for large-scale murals and brand identity. Sleepless craft, fearless scale, color with intent.",
 };
 
 const VALUES = [
@@ -31,10 +31,10 @@ const VALUES = [
   },
   {
     title: "Scale without fear",
-    body: "Ten storeys or ten feet. We plan, permit and produce work that holds up at architectural size.",
+    body: "Ten stories or ten feet. We plan, permit and produce work that holds up at architectural size.",
   },
   {
-    title: "Colour with intent",
+    title: "Color with intent",
     body: "Mostly monochrome, one decisive accent. Restraint is what makes the red land.",
   },
   {

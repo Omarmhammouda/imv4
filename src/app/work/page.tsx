@@ -7,7 +7,7 @@ import { getContent } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Work",
   description:
-    "Every mural we've made — browse the work piece by piece and filter by neighbourhood.",
+    "Every mural we've made — browse the work piece by piece and filter by neighborhood.",
 };
 
 export default async function WorkPage() {
@@ -17,7 +17,7 @@ export default async function WorkPage() {
       <PageHero
         eyebrow="The Work"
         title={["Every wall", "we've signed"]}
-        lead="The full wall, piece by piece. Browse every mural we've put up and filter by the neighbourhood it lives in."
+        lead="The full wall, piece by piece. Browse every mural we've put up and filter by the neighborhood it lives in."
         meta={[
           { label: "Murals", value: String(totalMurals) },
           { label: "Regions", value: String(regions.length) },
