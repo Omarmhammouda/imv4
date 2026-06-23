@@ -38,9 +38,12 @@ export const onRequestPost = async (context: {
   // (e.g. "BREVO_API_KEY " with a trailing space won't match env.BREVO_API_KEY).
   const readEnv = (name: string): string => {
     const rec = env as unknown as Record<string, unknown>;
-    if (typeof rec[name] === "string" && rec[name]) return rec[name] as string;
+    // .trim() the VALUE too — a trailing space/newline in the key makes the
+    // "api-key" HTTP header invalid and fetch() throws.
+    if (typeof rec[name] === "string" && (rec[name] as string).trim())
+      return (rec[name] as string).trim();
     for (const [k, v] of Object.entries(rec)) {
-      if (k.trim() === name && typeof v === "string" && v) return v;
+      if (k.trim() === name && typeof v === "string" && v.trim()) return v.trim();
     }
     return "";
   };
@@ -53,21 +56,27 @@ export const onRequestPost = async (context: {
     return json({ ok: false, error: "Email service not configured", missing }, 500);
   }
 
-  const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
-    method: "POST",
-    headers: {
-      "api-key": apiKey,
-      "content-type": "application/json",
-      accept: "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      // Only FIRSTNAME for now — other attributes 400 unless created in Brevo first.
-      attributes: name ? { FIRSTNAME: name } : undefined,
-      listIds: [Number(listId)],
-      updateEnabled: true, // update existing contacts instead of erroring
-    }),
-  });
+  let brevoRes: Response;
+  try {
+    brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        // Only FIRSTNAME for now — other attributes 400 unless created in Brevo first.
+        attributes: name ? { FIRSTNAME: name } : undefined,
+        listIds: [Number(listId)],
+        updateEnabled: true, // update existing contacts instead of erroring
+      }),
+    });
+  } catch (err) {
+    console.error("[contact] Brevo fetch threw", err);
+    return json({ ok: false, error: "Could not reach Brevo" }, 502);
+  }
 
   // Brevo: 201 = created, 204 = updated (with updateEnabled). Both are success.
   if (brevoRes.ok) return json({ ok: true });
