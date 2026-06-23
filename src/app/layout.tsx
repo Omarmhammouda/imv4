@@ -7,6 +7,7 @@ import CustomCursor from "@/components/cursor/CustomCursor";
 import Header from "@/components/layout/Header";
 import Menu from "@/components/layout/Menu";
 import Footer from "@/components/layout/Footer";
+import FloatingInquire from "@/components/layout/FloatingInquire";
 import { getContent } from "@/lib/content";
 
 // Display: industrial urban-signage condensed grotesque (murals + title-screen).
@@ -91,6 +92,7 @@ export default async function RootLayout({
           <Menu settings={settings} />
           <main id="main">{children}</main>
           <Footer settings={settings} recentWorks={recentWorks} />
+          <FloatingInquire />
         </SmoothScrollProvider>
         <div className="grain" aria-hidden="true" />
       </body>

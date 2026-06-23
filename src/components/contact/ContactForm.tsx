@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sfx } from "@/lib/sound";
 import { getSupabase } from "@/lib/supabase";
+import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import styles from "./ContactForm.module.css";
 
 type Status = "idle" | "submitting" | "success" | "error";
@@ -67,6 +68,14 @@ export default function ContactForm() {
   const [fileError, setFileError] = useState<string>("");
   const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { scrollTo, lenis } = useLenis();
+
+  // On a successful submit, scroll back to the top so the confirmation is seen.
+  useEffect(() => {
+    if (status !== "success") return;
+    if (lenis) scrollTo(0);
+    else window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [status, scrollTo, lenis]);
 
   function validate(data: FormData): Errors {
     const next: Errors = {};
