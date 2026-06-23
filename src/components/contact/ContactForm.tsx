@@ -155,6 +155,23 @@ export default function ContactForm() {
       // No Supabase configured yet — simulate a send so the flow still works.
       await new Promise((r) => window.setTimeout(r, 700));
     }
+
+    // Add/update the contact in Brevo + add to the list (triggers the email
+    // automation). Handled server-side at /api/contact so the API key stays
+    // secret. Best-effort: a Brevo hiccup never blocks a received inquiry.
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: get("email"), name: get("name") }),
+      });
+      if (!res.ok) {
+        console.error("Brevo contact sync failed", res.status, await res.text().catch(() => ""));
+      }
+    } catch (err) {
+      console.error("Brevo contact sync error", err);
+    }
+
     setStatus("success");
   }
 
