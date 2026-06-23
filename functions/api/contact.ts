@@ -34,9 +34,13 @@ export const onRequestPost = async (context: {
   // (6) Validate the email is present before calling Brevo.
   if (!email) return json({ ok: false, error: "Email is required" }, 400);
 
-  if (!env.BREVO_API_KEY || !env.BREVO_LIST_ID) {
-    console.error("[contact] Missing BREVO_API_KEY or BREVO_LIST_ID env var");
-    return json({ ok: false, error: "Email service not configured" }, 500);
+  const missing = [
+    !env.BREVO_API_KEY && "BREVO_API_KEY",
+    !env.BREVO_LIST_ID && "BREVO_LIST_ID",
+  ].filter(Boolean);
+  if (missing.length) {
+    console.error("[contact] Missing env var(s):", missing.join(", "));
+    return json({ ok: false, error: "Email service not configured", missing }, 500);
   }
 
   const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
