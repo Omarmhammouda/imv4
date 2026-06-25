@@ -275,37 +275,9 @@ begin
   end if;
 end $$;
 
-insert into public.posts (slug, sort, title, excerpt, category, author, cover, published_at, body) values
-('what-a-wall-can-say', 1, 'What a wall can say that a billboard can''t',
- 'A mural isn''t an ad you scroll past — it''s a place. Here''s how we think about giving a street its name back.',
- 'Field notes', 'Insomnia Murals', '/posters/impact.jpg', '2026-05-12',
- $md$A billboard rents your attention for as long as the light is red. A mural earns it for years.
-
-## The difference is permanence
-
-When we paint a wall, we're not buying media — we're making a landmark. People give it a name, take photos against it, meet there. That's a different contract with a place.
-
-## How we approach it
-
-- **Start with the street, not the logo.** What does this block need?
-- **One decisive idea.** Restraint is what makes the red land.
-- **Built to last.** UV-stable systems, sealed and documented.
-
-> Paint fades; landmarks don't.
-
-That's the whole brief, every time.$md$),
-('painting-after-dark', 2, 'Why we paint after dark',
- 'Quiet streets, cooler walls, and light you can actually control. A short note on the nocturnal craft.',
- 'Process', 'Insomnia Murals', '/posters/vision.jpg', '2026-04-02',
- $md$The studio is called Insomnia for a reason.
-
-Night work isn't a gimmick — it's practical. Streets are quiet, so lifts and rigging go up without a crowd. Walls are cool, so paint behaves. And with the sun gone, **we control the light** ourselves, which means cleaner color and truer fades.
-
-## The trade-offs
-
-It's slower to set up and harder on the team. But the work that comes off a wall at 3 a.m. holds a quality the daytime rush never quite matches.$md$)
-on conflict (slug) do nothing;
--- Add a post:
+-- No posts are seeded — the Journal stays empty until you add real ones.
+-- Add a post (set published_at to a FUTURE date to schedule it; the daily
+-- rebuild Worker publishes it on that day — see scheduled-build/README.md):
 --   insert into public.posts (slug, title, excerpt, category, author, cover, published_at, body)
 --   values ('my-slug', 'Title', 'Short excerpt', 'Process', 'Insomnia Murals',
---           'https://…/cover.jpg', '2026-06-01', $md$Markdown **body** here…$md$);
+--           'https://…/cover.jpg', '2026-07-01', $md$Markdown **body** here…$md$);

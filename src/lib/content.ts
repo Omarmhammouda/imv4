@@ -259,30 +259,9 @@ export interface Post {
 
 const POST_FALLBACK_COVER = "/posters/craft.jpg";
 
-export const fallbackPosts: Post[] = [
-  {
-    slug: "what-a-wall-can-say",
-    title: "What a wall can say that a billboard can't",
-    excerpt:
-      "A mural isn't an ad you scroll past — it's a place. Here's how we think about giving a street its name back.",
-    category: "Field notes",
-    author: "Insomnia Murals",
-    cover: "/posters/impact.jpg",
-    date: "2026-05-12",
-    body: "A billboard rents your attention for as long as the light is red. A mural earns it for years.\n\n## The difference is permanence\n\nWhen we paint a wall, we're not buying media — we're making a landmark. People give it a name, take photos against it, meet there. That's a different contract with a place.\n\n## How we approach it\n\n- **Start with the street, not the logo.** What does this block need?\n- **One decisive idea.** Restraint is what makes the red land.\n- **Built to last.** UV-stable systems, sealed and documented.\n\n> Paint fades; landmarks don't.\n\nThat's the whole brief, every time.",
-  },
-  {
-    slug: "painting-after-dark",
-    title: "Why we paint after dark",
-    excerpt:
-      "Quiet streets, cooler walls, and light you can actually control. A short note on the nocturnal craft.",
-    category: "Process",
-    author: "Insomnia Murals",
-    cover: "/posters/vision.jpg",
-    date: "2026-04-02",
-    body: "The studio is called Insomnia for a reason.\n\nNight work isn't a gimmick — it's practical. Streets are quiet, so lifts and rigging go up without a crowd. Walls are cool, so paint behaves. And with the sun gone, **we control the light** ourselves, which means cleaner color and truer fades.\n\n## The trade-offs\n\nIt's slower to set up and harder on the team. But the work that comes off a wall at 3 a.m. holds a quality the daytime rush never quite matches.",
-  },
-];
+// No placeholder posts — the Journal stays empty until real posts are published
+// (added to Supabase with a `published_at` date that is today or earlier).
+export const fallbackPosts: Post[] = [];
 
 export const getPosts = cache(async (): Promise<Post[]> => {
   // Scheduled publishing: a post is only live once its published_at is today or
