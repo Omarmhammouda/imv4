@@ -1,0 +1,9 @@
+{
+  "name": "insomnia-scheduled-build",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-01",
+  // Runs daily at 12:05 UTC (~8:05am US Eastern in summer). A build takes a
+  // couple of minutes, so this fires a few minutes before the hour you want
+  // posts to appear. Cron is always UTC — adjust to your target local time.
+  "triggers": { "crons": ["5 12 * * *"] }
+}

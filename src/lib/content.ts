@@ -285,17 +285,30 @@ export const fallbackPosts: Post[] = [
 ];
 
 export const getPosts = cache(async (): Promise<Post[]> => {
+  // Scheduled publishing: a post is only live once its published_at is today or
+  // earlier (UTC). Future-dated posts stay hidden — and because this same helper
+  // feeds generateStaticParams, their pages aren't even built until a rebuild
+  // runs on/after their date. A daily rebuild (cron Worker) drips them out.
+  const today = new Date().toISOString().slice(0, 10); // UTC YYYY-MM-DD
+  const live = (posts: Post[]) => posts.filter((p) => p.date && p.date <= today);
+
   const sb = getSupabase();
-  if (!sb) return fallbackPosts;
+  if (!sb) return live(fallbackPosts);
   try {
     const { data, error } = await sb
       .from("posts")
       .select("*")
       .eq("published", true)
+      .lte("published_at", today)
       .order("published_at", { ascending: false })
       .order("sort", { ascending: true });
-    if (error || !data || data.length === 0) return fallbackPosts;
-    return data.map((p: Record<string, unknown>) => ({
+    // Only fall back when the table is genuinely unavailable — an empty result
+    // (e.g. nothing due yet) is a valid "no posts live" state.
+    if (error) {
+      console.warn("[content] posts table unavailable — using fallback posts", error.message);
+      return live(fallbackPosts);
+    }
+    return (data ?? []).map((p: Record<string, unknown>) => ({
       slug: String(p.slug),
       title: String(p.title),
       excerpt: cleanStr(p.excerpt) ?? "",
@@ -307,7 +320,7 @@ export const getPosts = cache(async (): Promise<Post[]> => {
     }));
   } catch (e) {
     console.warn("[content] posts fetch failed — using fallback posts", e);
-    return fallbackPosts;
+    return live(fallbackPosts);
   }
 });
 
