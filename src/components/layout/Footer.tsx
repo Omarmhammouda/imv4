@@ -20,6 +20,7 @@ export default function Footer({
         { label: "About", href: "/about" },
         { label: "Process", href: "/process" },
         { label: "Services", href: "/services" },
+        { label: "Journal", href: "/blog" },
       ],
     },
     {

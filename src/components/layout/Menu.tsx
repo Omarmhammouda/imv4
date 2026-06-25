@@ -16,7 +16,8 @@ const NAV = [
   { label: "Studio", href: "/about", index: "03" },
   { label: "Services", href: "/services", index: "04" },
   { label: "Process", href: "/process", index: "05" },
-  { label: "Contact", href: "/contact", index: "06" },
+  { label: "Journal", href: "/blog", index: "06" },
+  { label: "Contact", href: "/contact", index: "07" },
 ];
 
 export default function Menu({ settings }: { settings: Settings }) {

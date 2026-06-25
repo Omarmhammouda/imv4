@@ -191,10 +191,10 @@ insert into public.chapters (slug, sort, label, line1, line2, line3, emphasis_li
   'From the first sketch to the last coat, we obsess over line, scale and surface. Hand-cut stencils, free-hand aerosol, brushwork: the right tool for the wall in front of us.',
   'See the process', '/process', '/videos/craft.mp4', '/posters/craft.jpg', 'right'),
 ('scale', 3, 'Scale', 'From a sketch', 'to', 'the skyline', 2, 'skyline',
-  'A napkin idea becomes a ten-storey statement. We plan, permit and produce murals at architectural scale, engineered to survive weather, light and time.',
+  'A napkin idea becomes a ten-story statement. We plan, permit and produce murals at architectural scale, engineered to survive weather, light and time.',
   'Browse the work', '/work', '/videos/scale.mp4', '/posters/scale.jpg', 'left'),
 ('collaboration', 4, 'Collaboration', 'Artists, brands', '& cities', 'in concert', 2, 'concert',
-  'We bring artists, brands and city programs into one room. Clear briefs, shared authorship, and murals that serve the neighbourhood as much as the logo.',
+  'We bring artists, brands and city programs into one room. Clear briefs, shared authorship, and murals that serve the neighborhood as much as the logo.',
   'Our services', '/services', '/videos/collaboration.mp4', '/posters/collaboration.jpg', 'right'),
 ('impact', 5, 'Impact', 'Color that', 'changes', 'a place', 1, 'changes',
   'A wall can shift how a street feels: slowing traffic, drawing footfall, giving a block its name back. We measure success in the life that gathers around the work.',
@@ -248,3 +248,64 @@ on conflict do nothing;
 -- full Supabase Storage public URLs. Murals with null `images` show rotating
 -- placeholders. Redeploy after edits to publish.
 -- ============================================================================
+
+-- ============================================================================
+-- BLOG / JOURNAL — posts shown at /blog and /blog/<slug>
+--   `body` is Markdown, rendered to HTML at build time. Public can read
+--   published posts. Redeploy after adding/editing posts to publish them.
+-- ============================================================================
+create table if not exists public.posts (
+  id            bigint generated always as identity primary key,
+  slug          text unique not null,
+  sort          int  not null default 0,
+  title         text not null,
+  excerpt       text,
+  body          text not null,            -- Markdown
+  category      text,
+  author        text,
+  cover         text,                     -- image URL/path (null → a poster)
+  published_at  date not null default current_date,
+  published     boolean not null default true
+);
+alter table public.posts enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policies where tablename='posts' and policyname='public read posts') then
+    create policy "public read posts" on public.posts for select to anon, authenticated using (published = true);
+  end if;
+end $$;
+
+insert into public.posts (slug, sort, title, excerpt, category, author, cover, published_at, body) values
+('what-a-wall-can-say', 1, 'What a wall can say that a billboard can''t',
+ 'A mural isn''t an ad you scroll past — it''s a place. Here''s how we think about giving a street its name back.',
+ 'Field notes', 'Insomnia Murals', '/posters/impact.jpg', '2026-05-12',
+ $md$A billboard rents your attention for as long as the light is red. A mural earns it for years.
+
+## The difference is permanence
+
+When we paint a wall, we're not buying media — we're making a landmark. People give it a name, take photos against it, meet there. That's a different contract with a place.
+
+## How we approach it
+
+- **Start with the street, not the logo.** What does this block need?
+- **One decisive idea.** Restraint is what makes the red land.
+- **Built to last.** UV-stable systems, sealed and documented.
+
+> Paint fades; landmarks don't.
+
+That's the whole brief, every time.$md$),
+('painting-after-dark', 2, 'Why we paint after dark',
+ 'Quiet streets, cooler walls, and light you can actually control. A short note on the nocturnal craft.',
+ 'Process', 'Insomnia Murals', '/posters/vision.jpg', '2026-04-02',
+ $md$The studio is called Insomnia for a reason.
+
+Night work isn't a gimmick — it's practical. Streets are quiet, so lifts and rigging go up without a crowd. Walls are cool, so paint behaves. And with the sun gone, **we control the light** ourselves, which means cleaner color and truer fades.
+
+## The trade-offs
+
+It's slower to set up and harder on the team. But the work that comes off a wall at 3 a.m. holds a quality the daytime rush never quite matches.$md$)
+on conflict (slug) do nothing;
+-- Add a post:
+--   insert into public.posts (slug, title, excerpt, category, author, cover, published_at, body)
+--   values ('my-slug', 'Title', 'Short excerpt', 'Process', 'Insomnia Murals',
+--           'https://…/cover.jpg', '2026-06-01', $md$Markdown **body** here…$md$);
