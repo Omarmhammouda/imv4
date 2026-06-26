@@ -11,7 +11,11 @@ import styles from "./article.module.css";
 // Prerender every post at build time (required for `output: export`).
 export async function generateStaticParams() {
   const posts = await getPosts();
-  return posts.map((p) => ({ slug: p.slug }));
+  const params = posts.map((p) => ({ slug: p.slug }));
+  // `output: export` errors on a dynamic route with zero params. When the
+  // Journal is empty (no posts due yet), emit one placeholder slug that simply
+  // renders 404 — so the build still succeeds and no real post is shown.
+  return params.length > 0 ? params : [{ slug: "__none__" }];
 }
 
 export async function generateMetadata({
