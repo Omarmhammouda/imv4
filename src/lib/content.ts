@@ -141,8 +141,13 @@ export const getContent = cache(async (): Promise<SiteContent> => {
     ]);
 
     if (chapters.error || regions.error || projects.error || stats.error) {
-      console.warn("[content] Supabase read error — using fallback content");
-      return fallbackContent;
+      // Supabase is configured but the read failed — fail the build rather than
+      // publish an empty site. Cloudflare keeps the last successful deployment.
+      const msg = [chapters.error, regions.error, projects.error, stats.error]
+        .filter(Boolean)
+        .map((e) => e!.message)
+        .join("; ");
+      throw new Error(`[content] Supabase read error — refusing to publish empty content: ${msg}`);
     }
 
     const mappedChapters: Chapter[] = (chapters.data ?? []).map(
@@ -231,8 +236,12 @@ export const getContent = cache(async (): Promise<SiteContent> => {
       totalMurals: murals.length,
     };
   } catch (e) {
-    console.warn("[content] Supabase fetch failed — using fallback content", e);
-    return fallbackContent;
+    // Network/unexpected failure while Supabase is configured — fail the build
+    // so the last good deploy (with real content) is kept, not overwritten.
+    console.error("[content] Supabase fetch failed", e);
+    throw e instanceof Error
+      ? e
+      : new Error("[content] Supabase fetch failed — refusing to publish empty content");
   }
 });
 
@@ -291,8 +300,10 @@ export const getPosts = cache(async (): Promise<Post[]> => {
       date: String(p.published_at ?? ""),
     }));
   } catch (e) {
-    console.warn("[content] posts fetch failed — using fallback posts", e);
-    return live(fallbackPosts);
+    // Network/unexpected failure — fail the build rather than wipe the Journal.
+    // (A missing/empty `posts` table returns via `error` above, not here.)
+    console.error("[content] posts fetch failed", e);
+    throw e instanceof Error ? e : new Error("[content] posts fetch failed");
   }
 });
 
