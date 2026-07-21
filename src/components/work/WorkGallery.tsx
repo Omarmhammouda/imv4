@@ -21,7 +21,7 @@ function MuralCard({
   onOpen: () => void;
 }) {
   const photoCount = mural.images.length; // real photos
-  const hasVideo = Boolean(mural.video) && !reduced;
+  const hasVideo = Boolean(mural.video); // reduced-motion just doesn't autoplay
   const clickable = photoCount > 0; // lightbox only when there are real photos
   const localVideo = mural.video.startsWith("/");
 
@@ -58,12 +58,14 @@ function MuralCard({
           // eslint-disable-next-line jsx-a11y/media-has-caption
           <video
             className={styles.poster}
-            autoPlay
+            autoPlay={!reduced}
             muted
-            loop
+            loop={!reduced}
             playsInline
             preload="metadata"
-            poster={withBase(mural.cover)}
+            // poster only when there's a real photo; otherwise the video's own
+            // first frame shows — never a placeholder image.
+            poster={mural.cover ? withBase(mural.cover) : undefined}
             aria-hidden="true"
           >
             {localVideo && (
@@ -71,7 +73,7 @@ function MuralCard({
             )}
             <source src={withBase(mural.video)} type="video/mp4" />
           </video>
-        ) : (
+        ) : mural.cover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             className={styles.poster}
@@ -79,6 +81,8 @@ function MuralCard({
             alt={`${mural.title} — mural for ${mural.client}`}
             loading="lazy"
           />
+        ) : (
+          <span className={styles.mediaEmpty} aria-hidden="true" />
         )}
         <span className={styles.region}>{mural.regionName}</span>
         {photoCount > 1 && (
@@ -103,7 +107,7 @@ export default function WorkGallery({
   regions,
 }: {
   murals: Mural[];
-  regions: Region[];
+  regions: Pick<Region, "id" | "name">[];
 }) {
   const reduced = useExperience((s) => s.reducedMotion);
   const [filter, setFilter] = useState<string>("all");

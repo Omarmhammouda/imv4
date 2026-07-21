@@ -132,6 +132,23 @@
   background: linear-gradient(to bottom, rgba(5, 5, 6, 0.55), transparent 35%);
   pointer-events: none;
 }
+
+/* mural with no video and no photo — a plain dark tile, not a placeholder image */
+.mediaEmpty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(120% 120% at 50% 40%, var(--surface), var(--bg-deep));
+}
+.mediaEmpty::before {
+  content: "";
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  transform: rotate(45deg);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
 .region {
   position: absolute;
   top: var(--space-xs);

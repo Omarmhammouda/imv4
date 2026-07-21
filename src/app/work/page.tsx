@@ -26,7 +26,7 @@ export default async function WorkPage() {
       />
 
       <section className="section container" aria-label="All murals">
-        <WorkGallery murals={murals} regions={regions} />
+        <WorkGallery murals={murals} regions={regions.map(({ id, name }) => ({ id, name }))} />
       </section>
 
       <CtaBand

@@ -68,10 +68,6 @@ export interface Mural {
   cover: string; // poster image: first real photo, else a placeholder
 }
 
-// Rotating placeholder visuals so the gallery looks varied before real mural
-// photos are added (a project's own `images`/`video` override these).
-const ROTATION = ["vision", "craft", "scale", "collaboration", "impact", "legacy"];
-
 // Treat empty / placeholder-ish text ("null", "NULL", "n/a", …) as not-set, so
 // values typed into the Supabase Table Editor by hand don't become broken URLs.
 function cleanStr(v: unknown): string | undefined {
@@ -85,12 +81,8 @@ function cleanStr(v: unknown): string | undefined {
 
 function buildMurals(regions: Region[]): Mural[] {
   const murals: Mural[] = [];
-  let i = 0;
   for (const r of regions) {
     for (const p of r.featured) {
-      const placeholders = [0, 1, 2].map(
-        (k) => `/posters/${ROTATION[(i + k) % ROTATION.length]}.jpg`,
-      );
       const realImages = (p.images ?? [])
         .map(cleanStr)
         .filter((x): x is string => Boolean(x));
@@ -103,9 +95,10 @@ function buildMurals(regions: Region[]): Mural[] {
         regionSlug: r.id,
         images: realImages, // real photos only (drives lightbox)
         video: cleanStr(p.video) ?? "", // real preview video, else ""
-        cover: realImages[0] ?? placeholders[0], // poster
+        // Poster = a real photo only. No placeholder art — a video card uses
+        // its own first frame; a mural with no media shows a plain dark tile.
+        cover: realImages[0] ?? "",
       });
-      i++;
     }
   }
   return murals;
