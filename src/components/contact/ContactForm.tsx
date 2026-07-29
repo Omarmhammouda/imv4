@@ -17,7 +17,14 @@ const PROJECT_TYPES = [
   "Festival / curation",
   "Something else",
 ];
-const BUDGETS = ["Under $10k", "$10k – $25k", "$25k – $75k", "$75k+", "Not sure yet"];
+const BUDGETS = [
+  "Under $2,000",
+  "$2,000 – $10k",
+  "$10k – $25k",
+  "$25k – $75k",
+  "$75k+",
+  "Not sure yet",
+];
 const SURFACES = [
   "Not sure",
   "Brick",
@@ -394,7 +401,7 @@ export default function ContactForm() {
             <label htmlFor="budget" className={styles.label}>
               Budget
             </label>
-            <select id="budget" name="budget" className={styles.input} defaultValue={BUDGETS[4]}>
+            <select id="budget" name="budget" className={styles.input} defaultValue={BUDGETS[BUDGETS.length - 1]}>
               {BUDGETS.map((b) => (
                 <option key={b}>{b}</option>
               ))}
