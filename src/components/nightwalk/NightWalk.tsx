@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import Preloader from "@/components/preloader/Preloader";
+import { useExperience } from "@/lib/store";
 import MuralLightbox from "@/components/work/MuralLightbox";
 import { Cta } from "@/components/ui/Cta";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
@@ -48,11 +48,11 @@ function paintedWall(img: HTMLImageElement, wallW: number, wallH: number, seed: 
   g.globalCompositeOperation = "multiply";
   for (let y = 0, row = 0; y < ch; y += bh, row++) {
     for (let x = row % 2 ? -bw / 2 : 0; x < cw; x += bw) {
-      const v = 225 + r() * 30;
+      const v = 240 + r() * 15;
       g.fillStyle = `rgb(${v | 0},${v | 0},${v | 0})`;
       g.fillRect(x, y, bw, bh);
     }
-    g.fillStyle = "rgba(70,62,58,.55)";
+    g.fillStyle = "rgba(90,82,78,.32)";
     g.fillRect(0, y, cw, m);
     for (let x = row % 2 ? -bw / 2 : 0; x < cw; x += bw) g.fillRect(x, y, m, bh);
   }
@@ -61,10 +61,10 @@ function paintedWall(img: HTMLImageElement, wallW: number, wallH: number, seed: 
   // weathering: darker at the base, a few soft stains
   const gr = g.createLinearGradient(0, ch * 0.72, 0, ch);
   gr.addColorStop(0, "rgba(8,8,10,0)");
-  gr.addColorStop(1, "rgba(8,8,10,.45)");
+  gr.addColorStop(1, "rgba(8,8,10,.2)");
   g.fillStyle = gr;
   g.fillRect(0, 0, cw, ch);
-  for (let k = 0; k < 28; k++) {
+  for (let k = 0; k < 10; k++) {
     g.fillStyle = `rgba(15,14,14,${0.03 + r() * 0.05})`;
     g.beginPath();
     g.ellipse(r() * cw, r() * ch, 20 + r() * 110, 10 + r() * 55, r() * 3, 0, 7);
@@ -139,7 +139,14 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
   const [open, setOpen] = useState<Mural | null>(null);
   const [noGL, setNoGL] = useState(false);
   const openRef = useRef(setOpen);
-  const { scrollTo } = useLenis();
+  const { scrollTo, start: startScroll } = useLenis();
+  const startSite = useExperience((s) => s.start);
+
+  // no loading screen: reveal the header and unlock scrolling right away
+  useEffect(() => {
+    startSite();
+    startScroll();
+  }, [startSite, startScroll]);
 
   const openWall = useCallback((i: number) => setOpen(wallAsMural(walls[i])), [walls]);
   openRef.current = (m) => setOpen(m);
@@ -165,7 +172,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0b0b0e);
-    scene.fog = new THREE.FogExp2(0x0b0b0e, 0.04);
+    scene.fog = new THREE.FogExp2(0x0b0b0e, 0.022);
     const camera = new THREE.PerspectiveCamera(narrow ? 72 : 55, innerWidth / innerHeight, 0.1, 200);
 
     scene.add(new THREE.HemisphereLight(0x4a5070, 0x0b0b0e, 0.5));
@@ -216,6 +223,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
     const edgeMat = keep(new THREE.MeshStandardMaterial({ map: conc, color: 0x5a5a60, roughness: 0.95 }));
     const lamps: { spot: THREE.SpotLight; halo: THREE.Sprite; group: THREE.Group; side: number }[] = [];
     const hits: THREE.Mesh[] = [];
+    const fronts: THREE.MeshStandardMaterial[] = [];
     const wallX = narrow ? 5 : 6.3;
 
     // dust in the lamp light
@@ -242,17 +250,22 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
       if (!alive) return;
       imgs.forEach((img, i) => {
         const a = img.width / img.height;
-        let wh = 5.6, ww = wh * a;
+        let wh = 6.2, ww = wh * a;
         if (ww > 13) { ww = 13; wh = ww / a; }
         if (ww < 3.6) { ww = 3.6; wh = ww / a; }
         if (wh > 7.4) { wh = 7.4; ww = wh * a; }
         const side = i % 2 === 0 ? -1 : 1;
-        const front = keep(new THREE.MeshStandardMaterial({ map: keep(paintedWall(img, ww, wh, i + 1)), roughness: 0.82 }));
+        const tex = keep(paintedWall(img, ww, wh, i + 1));
+        const front = keep(new THREE.MeshStandardMaterial({
+          map: tex, roughness: 0.82,
+          emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.35,
+        }));
+        fronts.push(front);
         const wall = new THREE.Mesh(keep(new THREE.BoxGeometry(ww, wh, 0.45)), [edgeMat, edgeMat, edgeMat, edgeMat, front, edgeMat]);
         wall.userData.i = i;
         const g = new THREE.Group();
         g.position.set(side * (wallX + ww * 0.25), wh / 2 + 0.18, -10 - i * SPACING);
-        g.rotation.y = side < 0 ? 0.62 : -0.62;
+        g.rotation.y = side < 0 ? 0.42 : -0.42;
         g.add(wall);
 
         const lampY = wh / 2 + 0.6;
@@ -323,21 +336,22 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
       const side = i % 2 === 0 ? -1 : 1;
       const camZ = -10 - t * SPACING + 9.5;
       camera.position.set(
-        -side * 1.6 * near + (reduce ? 0 : ptr.x * 0.35),
+        -side * 2.2 * near + (reduce ? 0 : ptr.x * 0.3),
         2.3 + (reduce ? 0 : ptr.y * 0.15 + Math.sin(time * 1.4) * 0.03 * (1 - near)),
         camZ,
       );
       look.set(0, 2.3, camZ - 12);
       if (lamps[i]) {
         lamps[i].group.getWorldPosition(tmp);
-        tmp.y = Math.max(2.4, tmp.y * 0.85);
-        look.lerp(tmp, near * 0.9);
+        tmp.y = Math.max(2.4, tmp.y * 0.9);
+        look.lerp(tmp, near);
       }
       camera.lookAt(look);
 
       lamps.forEach((l, k) => {
         const on = 1 - smooth(0.6, 2.2, Math.abs(t - k));
-        l.spot.intensity = 42 * (0.18 + 0.82 * on);
+        l.spot.intensity = 55 * (0.2 + 0.8 * on);
+        if (fronts[k]) fronts[k].emissiveIntensity = 0.12 + 0.55 * on;
         (l.halo.material as THREE.SpriteMaterial).opacity = 0.25 + 0.4 * on;
       });
       if (!reduce) {
@@ -374,8 +388,6 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
 
   return (
     <>
-      <Preloader />
-
       <div ref={stage} className={`${styles.stage} ${noGL ? styles.hidden : ""}`} aria-hidden="true" />
       <div className={styles.vignette} aria-hidden="true" />
 
@@ -420,7 +432,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
             <p className={styles.hud}>
               Wall {pad(current + 1)} / {pad(N)}
             </p>
-            <h2 key={w.title} className={styles.wallTitle}>{w.title}</h2>
+            <h2 className={styles.wallTitle}>{w.title}</h2>
             <p className={styles.meta}>
               {[w.client, w.place, w.year, w.size].filter(Boolean).join("  ·  ")}
             </p>

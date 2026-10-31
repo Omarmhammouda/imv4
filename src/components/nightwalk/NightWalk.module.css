@@ -13,7 +13,7 @@
   inset: 0;
   z-index: var(--z-scrim);
   pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(5, 5, 6, 0.85) 100%);
+  background: radial-gradient(130% 100% at 50% 42%, transparent 60%, rgba(5, 5, 6, 0.7) 100%);
 }
 
 :global(html).overWall,
@@ -129,9 +129,7 @@
   letter-spacing: var(--tracking-tight);
   text-transform: uppercase;
   margin: var(--space-xs) 0 var(--space-xs);
-  animation: rise var(--dur) var(--ease-out-expo);
 }
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
 
 .meta {
   font-size: var(--fs-body-sm);
@@ -203,5 +201,5 @@
   .body { font-size: var(--fs-body); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cueLine, .wallTitle { animation: none; }
+  .cueLine { animation: none; }
 }
