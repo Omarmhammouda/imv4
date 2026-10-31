@@ -29,50 +29,12 @@ function loadImg(src: string) {
   });
 }
 
-/** The mural painted edge-to-edge over brick: the brick shows through the paint. */
-function paintedWall(img: HTMLImageElement, wallW: number, wallH: number, seed: number) {
-  const cw = 1600;
-  const ch = Math.round((cw * wallH) / wallW);
-  const c = document.createElement("canvas");
-  c.width = cw;
-  c.height = ch;
-  const g = c.getContext("2d")!;
-  const r = rng(seed * 977 + 13);
-  const px = cw / wallW;
-  const bh = 0.2 * px, bw = 0.52 * px, m = Math.max(2, bh * 0.12);
-
-  g.drawImage(img, 0, 0, cw, ch); // covers the whole face
-
-  // mortar lines and brick-to-brick tone shifts read through the paint
-  g.save();
-  g.globalCompositeOperation = "multiply";
-  for (let y = 0, row = 0; y < ch; y += bh, row++) {
-    for (let x = row % 2 ? -bw / 2 : 0; x < cw; x += bw) {
-      const v = 240 + r() * 15;
-      g.fillStyle = `rgb(${v | 0},${v | 0},${v | 0})`;
-      g.fillRect(x, y, bw, bh);
-    }
-    g.fillStyle = "rgba(90,82,78,.32)";
-    g.fillRect(0, y, cw, m);
-    for (let x = row % 2 ? -bw / 2 : 0; x < cw; x += bw) g.fillRect(x, y, m, bh);
-  }
-  g.restore();
-
-  // weathering: darker at the base, a few soft stains
-  const gr = g.createLinearGradient(0, ch * 0.72, 0, ch);
-  gr.addColorStop(0, "rgba(8,8,10,0)");
-  gr.addColorStop(1, "rgba(8,8,10,.2)");
-  g.fillStyle = gr;
-  g.fillRect(0, 0, cw, ch);
-  for (let k = 0; k < 10; k++) {
-    g.fillStyle = `rgba(15,14,14,${0.03 + r() * 0.05})`;
-    g.beginPath();
-    g.ellipse(r() * cw, r() * ch, 20 + r() * 110, 10 + r() * 55, r() * 3, 0, 7);
-    g.fill();
-  }
-  const t = new THREE.CanvasTexture(c);
+/** The mural photo as a clean wall face — no brick or texture over it. */
+function paintedWall(img: HTMLImageElement) {
+  const t = new THREE.Texture(img);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
+  t.needsUpdate = true;
   return t;
 }
 
@@ -220,7 +182,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
     }
 
     const glow = keep(glowTex());
-    const edgeMat = keep(new THREE.MeshStandardMaterial({ map: conc, color: 0x5a5a60, roughness: 0.95 }));
+    const edgeMat = keep(new THREE.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.9 }));
     const lamps: { spot: THREE.SpotLight; halo: THREE.Sprite; group: THREE.Group; side: number }[] = [];
     const hits: THREE.Mesh[] = [];
     const fronts: THREE.MeshStandardMaterial[] = [];
@@ -255,7 +217,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
         if (ww < 3.6) { ww = 3.6; wh = ww / a; }
         if (wh > 7.4) { wh = 7.4; ww = wh * a; }
         const side = i % 2 === 0 ? -1 : 1;
-        const tex = keep(paintedWall(img, ww, wh, i + 1));
+        const tex = keep(paintedWall(img));
         const front = keep(new THREE.MeshStandardMaterial({
           map: tex, roughness: 0.82,
           emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.35,
