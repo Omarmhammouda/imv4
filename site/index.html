@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Insomnia Murals — Nocturnal mural studio</title>
+<meta name="description" content="A sleepless studio painting large-scale murals and building brand identity. Walk the night and see every wall we've signed.">
+<meta name="theme-color" content="#0b0908">
+<meta property="og:title" content="Insomnia Murals — Nocturnal mural studio">
+<meta property="og:description" content="Large-scale murals and brand identity from a sleepless studio. We turn blank walls into landmarks.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://insomniamurals.com/">
+<meta property="og:image" content="https://insomniamurals.com/img/photo-1.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Archivo:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0908; --ink:#070605; --panel:#14110c;
+  --paper:#efe7d8; --soft:#d8cfbf; --muted:#968b7c; --muted2:#6f665a;
+  --gold:#d8af6a; --gold-lt:#ecd29c; --hair:rgba(216,175,106,.18);
+  --display:'Bodoni Moda',"Times New Roman",serif;
+  --ui:'Archivo',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --g:clamp(16px,4vw,56px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--paper);font-family:var(--ui);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block;max-width:100%}
+:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
+
+/* ---------- stage ---------- */
+#stage{position:fixed;inset:0;z-index:0}
+#stage canvas{display:block;width:100%;height:100%}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(120% 90% at 50% 45%,transparent 45%,rgba(5,4,3,.85) 100%)}
+
+/* ---------- header ---------- */
+header{position:fixed;top:0;left:0;right:0;z-index:20;background:linear-gradient(rgba(11,9,8,.92),rgba(11,9,8,0));display:flex;align-items:center;justify-content:space-between;padding:20px var(--g)}
+.logo{font-family:var(--display);font-size:clamp(18px,2vw,22px);letter-spacing:.01em}
+.logo i{color:var(--gold);font-style:italic}
+.hnav{display:flex;gap:28px;align-items:center;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.hnav a:hover{color:var(--gold-lt)}
+.btn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--hair);padding:11px 18px;border-radius:999px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;transition:background .4s var(--ease),color .4s var(--ease),border-color .4s}
+.btn:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.btn.solid{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.btn.solid:hover{background:var(--gold-lt)}
+@media (max-width:720px){.hnav a:not(.btn){display:none}}
+
+/* ---------- flight scroll track ---------- */
+#track{position:relative;z-index:3;pointer-events:none}
+.hero{height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 var(--g) 14vh}
+.eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(46px,9vw,140px);line-height:.92;letter-spacing:-.02em;margin:18px 0 22px;max-width:11ch}
+.hero h1 i{color:var(--gold-lt)}
+.hero p{max-width:440px;color:var(--soft);font-size:15px}
+.cue{margin-top:34px;display:flex;align-items:center;gap:14px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.cue span{width:1px;height:46px;background:linear-gradient(var(--gold),transparent);animation:drip 2.4s var(--ease) infinite;transform-origin:top}
+@keyframes drip{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+.hero, .hero *{transition:opacity .6s}
+body.flying .hero{opacity:0}
+
+/* ---------- HUD ---------- */
+.hud{position:fixed;z-index:10;left:var(--g);bottom:clamp(24px,6vh,56px);max-width:min(520px,calc(100vw - 2*var(--g)));opacity:0;transform:translateY(12px);transition:opacity .6s var(--ease),transform .6s var(--ease);pointer-events:none}
+body.flying .hud{opacity:1;transform:none;pointer-events:auto}
+.hud .num{font-size:11px;letter-spacing:.26em;color:var(--gold)}
+.hud h2{font-family:var(--display);font-weight:400;font-style:italic;font-size:clamp(30px,4.6vw,62px);line-height:1;margin:10px 0 12px}
+.hud .meta{font-size:13px;color:var(--soft);letter-spacing:.02em}
+.hud .meta b{font-weight:500;color:var(--paper)}
+.hud .row{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+.hud.swap h2,.hud.swap .meta,.hud.swap .num{opacity:0;transform:translateY(8px)}
+.hud h2,.hud .meta,.hud .num{transition:opacity .35s var(--ease),transform .35s var(--ease)}
+
+.rail{position:fixed;z-index:10;right:var(--g);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;opacity:0;transition:opacity .6s}
+body.flying .rail{opacity:1}
+.rail button{width:28px;height:2px;background:rgba(239,231,216,.22);transition:background .3s,width .3s;position:relative}
+.rail button::after{content:"";position:absolute;inset:-8px 0}
+.rail button.on{background:var(--gold);width:44px}
+@media (max-width:720px){.rail{display:none}}
+
+/* ---------- content after the flight ---------- */
+main.after{position:relative;z-index:5;background:linear-gradient(transparent,var(--bg) 18vh);padding-top:30vh}
+section{padding:clamp(70px,12vw,150px) var(--g);max-width:1440px;margin:0 auto}
+.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:48px;flex-wrap:wrap}
+.sh h3{font-family:var(--display);font-weight:400;font-size:clamp(38px,6vw,88px);line-height:.95;letter-spacing:-.02em}
+.sh h3 i{color:var(--gold-lt)}
+.stats{display:flex;gap:40px}
+.stats div{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.stats strong{display:block;font-family:var(--display);font-size:40px;font-weight:400;color:var(--paper);letter-spacing:0;text-transform:none}
+.list{border-top:1px solid var(--hair)}
+.item{display:grid;grid-template-columns:70px 1.4fr 1fr 110px 110px;gap:20px;align-items:baseline;padding:22px 0;border-bottom:1px solid var(--hair);transition:padding .4s var(--ease),color .3s;width:100%;text-align:left}
+.item:hover{padding-left:12px;color:var(--gold-lt)}
+.item .t{font-family:var(--display);font-size:clamp(20px,2.2vw,30px)}
+.item small{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.item .go{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);text-align:right}
+@media (max-width:820px){.item{grid-template-columns:40px 1fr;gap:4px 14px}.item>:nth-child(n+3){grid-column:2}.item .go{text-align:left}}
+
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair)}
+.pillars div{background:var(--bg);padding:34px 30px 40px}
+.pillars span{font-size:11px;letter-spacing:.24em;color:var(--gold)}
+.pillars h4{font-family:var(--display);font-weight:400;font-size:28px;margin:14px 0 10px}
+.pillars p{color:var(--soft);font-size:14px}
+@media (max-width:820px){.pillars{grid-template-columns:1fr}}
+
+.cta{text-align:center;padding-bottom:clamp(90px,14vw,180px)}
+.cta h3{font-family:var(--display);font-weight:400;font-size:clamp(40px,7vw,110px);line-height:.95;letter-spacing:-.02em;max-width:14ch;margin:20px auto 34px}
+.cta h3 i{color:var(--gold-lt)}
+footer{border-top:1px solid var(--hair);padding:28px var(--g);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);letter-spacing:.06em;position:relative;z-index:5;background:var(--bg)}
+footer a:hover{color:var(--gold-lt)}
+
+/* ---------- photo overlay ---------- */
+.ov{position:fixed;inset:0;z-index:40;background:rgba(7,6,5,.94);backdrop-filter:blur(8px);display:grid;grid-template-columns:1.3fr 1fr;opacity:0;pointer-events:none;transition:opacity .5s var(--ease)}
+.ov.open{opacity:1;pointer-events:auto}
+.ov figure{display:flex;align-items:center;justify-content:center;padding:clamp(70px,8vw,90px) var(--g) var(--g)}
+.ov figure img{max-height:82vh;width:auto;object-fit:contain;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:scale(.97);transition:transform .7s var(--ease)}
+.ov.open figure img{transform:none}
+.ov aside{padding:clamp(70px,10vw,140px) var(--g) var(--g);display:flex;flex-direction:column;justify-content:center;gap:18px;border-left:1px solid var(--hair)}
+.ov h2{font-family:var(--display);font-weight:400;font-style:italic;font-size:clamp(36px,4.6vw,66px);line-height:1}
+.ov dl{display:grid;grid-template-columns:110px 1fr;gap:12px 18px;font-size:14px;border-top:1px solid var(--hair);padding-top:20px}
+.ov dt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.ov .x{position:absolute;top:18px;right:var(--g);font-size:12px;letter-spacing:.2em;text-transform:uppercase;padding:10px 0;color:var(--soft)}
+.ov .x:hover{color:var(--gold-lt)}
+.ov .nav{display:flex;gap:10px;margin-top:10px}
+@media (max-width:820px){.ov{grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow:auto}.ov aside{border-left:0;border-top:1px solid var(--hair);padding-top:30px;justify-content:flex-start}.ov figure img{max-height:56vh}}
+
+/* ---------- loader ---------- */
+.loader{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .8s var(--ease),visibility .8s}
+.loader.done{opacity:0;visibility:hidden}
+.loader .l{font-family:var(--display);font-size:28px}
+.loader .l i{color:var(--gold)}
+.loader .bar{width:160px;height:1px;background:rgba(239,231,216,.12);overflow:hidden}
+.loader .bar span{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+.loader small{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- no-webgl fallback ---------- */
+.fallback #track,.fallback .hud,.fallback .rail{display:none}
+.fallback main.after{padding-top:110px}
+.fb-grid{display:none}
+.fallback .fb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.fb-grid button img{aspect-ratio:4/3;object-fit:cover;width:100%}
+
+@media (prefers-reduced-motion:reduce){.cue span{animation:none}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="loader" id="loader" role="status" aria-live="polite">
+  <div class="l">Insomnia <i>Murals</i></div>
+  <div class="bar"><span id="lbar"></span></div>
+  <small>Turning on the streetlights</small>
+</div>
+
+<div id="stage" aria-hidden="true"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<header>
+  <a class="logo" href="#top">Insomnia <i>Murals</i></a>
+  <nav class="hnav">
+    <a href="#archive">Work</a>
+    <a href="#studio">Studio</a>
+    <a class="btn" href="#contact">Inquire</a>
+  </nav>
+</header>
+
+<div id="track">
+  <div class="hero" id="top">
+    <div class="eyebrow">Nocturnal studio · Est. 2022</div>
+    <h1>We paint the walls of <i>tomorrow</i></h1>
+    <p>Large-scale murals and brand identity from a sleepless studio. Take a walk down our street at night — every wall on it is one we've signed.</p>
+    <div class="cue"><span></span>Scroll to walk the night</div>
+  </div>
+  <div id="flight"></div>
+</div>
+
+<div class="hud" id="hud" aria-live="polite">
+  <div class="num" id="hNum">01 / 09</div>
+  <h2 id="hTitle">—</h2>
+  <div class="meta" id="hMeta"></div>
+  <div class="row">
+    <button class="btn solid" id="hView">See the photo</button>
+    <a class="btn" href="#archive" id="hSkip">Skip to all work</a>
+  </div>
+</div>
+<nav class="rail" id="rail" aria-label="Jump to wall"></nav>
+
+<main class="after">
+  <section id="archive">
+    <div class="sh">
+      <h3>Every wall<br>we've <i>signed</i></h3>
+      <div class="stats">
+        <div><strong id="sCount">10</strong>Murals</div>
+        <div><strong>5</strong>Regions</div>
+        <div><strong>2022</strong>Since</div>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="fb-grid" id="fbgrid"></div>
+  </section>
+
+  <section id="studio">
+    <div class="sh"><h3>From a sketch<br>to the <i>skyline</i></h3></div>
+    <div class="pillars">
+      <div><span>01 — Craft</span><h4>Every wall tells a story</h4><p>Hand-cut stencils, free-hand aerosol, brushwork: the right tool for the wall in front of us, from the first sketch to the last coat.</p></div>
+      <div><span>02 — Scale</span><h4>Built for the street</h4><p>We plan, permit and produce murals at architectural scale, engineered to survive weather, light and time.</p></div>
+      <div><span>03 — Legacy</span><h4>Marks that last</h4><p>We document, protect and maintain every mural so the work keeps speaking long after the lift drives away.</p></div>
+    </div>
+  </section>
+
+  <section class="cta" id="contact">
+    <div class="eyebrow">Got a wall in mind?</div>
+    <h3>Let's paint something that <i>outlives</i> us.</h3>
+    <a class="btn solid" href="mailto:info@insomniamurals.com?subject=Mural%20inquiry">info@insomniamurals.com</a>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 Insomnia Murals · Nocturnal studio · Est. 2022</span>
+  <a href="mailto:info@insomniamurals.com">info@insomniamurals.com</a>
+</footer>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="oTitle">
+  <button class="x" id="oClose">Close ✕</button>
+  <figure><img id="oImg" alt=""></figure>
+  <aside>
+    <div class="eyebrow" id="oNum"></div>
+    <h2 id="oTitle"></h2>
+    <dl id="oDl"></dl>
+    <div class="nav">
+      <button class="btn" id="oPrev">← Prev</button>
+      <button class="btn" id="oNext">Next →</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------- the work ----------
+   photo: image number in /img (wall-N = cropped mural texture, photo-N = full on-site photo)
+   onWall: whether it gets a wall on the night street */
+window.WORKS = [
+  {photo:1, title:"Istanbul Bazaar", client:"Istanbul Bazaar", place:"Staten Island", year:"2023", size:"40ft × 20ft"},
+  {photo:3, title:"IL Leone", client:"IL Leone Restaurant", place:"Central Jersey", year:"2024", size:"15ft × 12ft"},
+  {photo:5, title:"A Piece of Philly Pride", client:"Brooklyn Dumpling Shop", place:"South Philly", year:"2022", size:"20ft × 7ft"},
+  {photo:7, title:"Groove", client:"Reverie Room NYC", place:"Manhattan", year:"2026", size:"13ft × 8ft"},
+  {photo:9, title:"Ciao Bella, Signorina Lady Justice!", client:"Gelatoville", place:"Manhattan", year:"2025", size:"4ft × 3ft"},
+  {photo:6, title:"Wings on Fire", client:"Wings on Fire", place:"", year:"", size:""},
+  {photo:2, title:"Pizza Shack", client:"Pizza Shack", place:"", year:"", size:""},
+  {photo:4, title:"Surf City", client:"Surf City", place:"", year:"", size:""},
+  {photo:8, title:"Hibernica", client:"Hibernica", place:"", year:"", size:""},
+  /* listed on the site, photo still to add */
+  {photo:0, title:"For the Saiyan Pride! A Tribute to Toriyama", client:"720 Strength Lower East", place:"Manhattan", year:"2024", size:"15ft × 10ft"},
+  {photo:0, title:"Raw 720 Strength", client:"720 Strength Lower East", place:"Manhattan", year:"2026", size:"30ft × 8ft"},
+  {photo:0, title:"Starry Eyes", client:"Atolye", place:"Brooklyn", year:"2025", size:"3ft × 8ft"},
+  {photo:0, title:"Brooklyn Starry Night", client:"Atolye", place:"Brooklyn", year:"2025", size:"15ft × 10ft"},
+  {photo:0, title:"Golden Beauty", client:"Atolye", place:"Brooklyn", year:"2025", size:"15ft × 10ft"}
+];
+</script>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

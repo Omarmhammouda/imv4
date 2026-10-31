@@ -1,0 +1,7 @@
+{
+  "name": "insomnia-night-walk",
+  "private": true,
+  "scripts": {
+    "build:export": "mkdir -p out && cp -r site/. out/"
+  }
+}
