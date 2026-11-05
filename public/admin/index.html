@@ -166,36 +166,49 @@
   .inq-photo { max-width: 260px; border-radius: 8px; margin-bottom: 14px; }
   @media (max-width: 520px) { .kv { grid-template-columns: 1fr; gap: 0; } .kv dd { margin-bottom: 8px; } }
 
-  /* ---------- assistant ---------- */
-  .chat { display: flex; flex-direction: column; height: calc(100dvh - 200px); min-height: 420px; }
-  .chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 2px 16px; }
-  .msg { max-width: 760px; line-height: 1.55; }
-  .msg.user { align-self: flex-end; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px 14px 4px 14px; padding: 10px 14px; white-space: pre-wrap; }
-  .msg.user img { max-width: 220px; border-radius: 8px; margin-top: 8px; }
-  .msg.bot { align-self: flex-start; padding: 2px 2px; }
+  /* ---------- assistant (sticky side panel) ---------- */
+  :root { --chat-w: 420px; }
+  .side-chat { position: fixed; top: 0; right: 0; bottom: 0; width: var(--chat-w); z-index: 30; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+  .side-head { display: flex; align-items: center; gap: 8px; padding: 14px 14px 12px 18px; border-bottom: 1px solid var(--line); }
+  .side-head h2 { flex: 1; margin: 0; font-size: 22px; color: var(--text); }
+  .side-head h2 span { color: var(--accent); }
+  @media (min-width: 1100px) {
+    body.chat-open #app { padding-right: var(--chat-w); }
+  }
+  @media (max-width: 1099px) {
+    .side-chat { width: 100%; z-index: 45; border-left: 0; }
+  }
+  .chat-fab { position: fixed; right: 18px; bottom: 18px; z-index: 29; border-radius: 999px; padding: 12px 18px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+  body.chat-open .chat-fab { display: none; }
+  .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 14px 14px; }
+  .chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 16px 4px; }
+  .msg { max-width: 100%; line-height: 1.55; font-size: 14.5px; }
+  .msg.user { align-self: flex-end; max-width: 88%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px 14px 4px 14px; padding: 10px 14px; white-space: pre-wrap; }
+  .msg.user img { max-width: 200px; border-radius: 8px; margin-top: 8px; }
+  .msg.bot { align-self: flex-start; padding: 2px; }
   .msg.bot p { margin: 0 0 8px; } .msg.bot p:last-child { margin: 0; }
   .msg.bot ul { margin: 0 0 8px; padding-left: 20px; }
   .msg.bot code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
-  .msg.bot a { color: var(--accent); }
+  .msg.bot a { color: var(--accent); word-break: break-all; }
   .act { align-self: flex-start; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
   .act::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex: none; }
   .act.err { color: #ff8a80; } .act.err::before { background: #ff8a80; }
-  .approve { align-self: flex-start; background: var(--panel); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; max-width: 560px; }
+  .approve { align-self: stretch; background: var(--bg); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; }
   .approve b { display: block; margin-bottom: 4px; }
   .approve .muted { font-size: 14px; margin: 0 0 12px; }
   .approve .row-btns { display: flex; gap: 8px; }
   .thinking { align-self: flex-start; color: var(--muted); font-size: 14px; }
-  .composer { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px; }
+  .composer { border: 1px solid var(--line); border-radius: 12px; background: var(--bg); padding: 10px; }
   .composer textarea { border: 0; background: none; min-height: 52px; max-height: 200px; padding: 4px 6px; resize: none; }
   .composer textarea:focus { border: 0; }
   .composer-bar { display: flex; align-items: center; gap: 8px; }
   .composer-bar .spacer { flex: 1; }
   .attachments { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 6px 6px; }
   .attachments .photo { width: 64px; height: 64px; aspect-ratio: auto; }
-  .chat-empty { margin: auto; text-align: center; color: var(--muted); max-width: 440px; }
-  .chat-empty h3 { font-family: var(--display); font-size: 28px; text-transform: uppercase; color: var(--text); margin: 0 0 8px; }
-  .suggest { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
-  @media (max-width: 640px) { .chat { height: calc(100dvh - 170px); } }
+  .chat-empty { margin: auto 0; text-align: center; color: var(--muted); padding: 0 8px; }
+  .chat-empty h3 { font-family: var(--display); font-size: 26px; text-transform: uppercase; color: var(--text); margin: 0 0 8px; }
+  .chat-empty p { font-size: 14px; }
+  .suggest { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
 
   /* ---------- toast ---------- */
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 600; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.4); max-width: calc(100% - 32px); }
@@ -228,7 +241,6 @@
       </div>
     </div>
     <nav class="tabs" role="tablist" id="tabs">
-      <button class="tab" role="tab" data-view="assistant">Assistant</button>
       <button class="tab" role="tab" data-view="murals">Murals</button>
       <button class="tab" role="tab" data-view="inquiries">Inquiries <span class="count" id="newCount" hidden></span></button>
       <button class="tab" role="tab" data-view="areas">Areas</button>
@@ -238,6 +250,27 @@
     </nav>
   </header>
   <main id="view"></main>
+  <button class="btn primary chat-fab" id="chatFab" type="button">✦ Assistant</button>
+  <aside class="side-chat" id="sideChat" hidden aria-label="Studio assistant">
+    <div class="side-head">
+      <h2>Studio <span>assistant</span></h2>
+      <button class="btn ghost small" type="button" id="newChat">New chat</button>
+      <button class="btn ghost small" type="button" id="closeChat" aria-label="Close assistant">✕</button>
+    </div>
+    <div class="chat">
+      <div class="chat-log" id="chatLog"></div>
+      <form class="composer" id="composer">
+        <div class="attachments" id="attachments"></div>
+        <textarea id="chatInput" placeholder="Ask for a change…" rows="2"></textarea>
+        <div class="composer-bar">
+          <label class="btn ghost small" title="Attach photos" style="cursor:pointer">📎 Photo<input type="file" accept="image/*" multiple hidden id="chatFiles" /></label>
+          <span class="spacer"></span>
+          <button class="btn ghost small" type="button" id="chatStop" hidden>Stop</button>
+          <button class="btn primary" type="submit" id="chatSend">Send</button>
+        </div>
+      </form>
+    </div>
+  </aside>
 </div>
 
 <div id="drawerRoot"></div>
@@ -285,6 +318,7 @@ async function boot() {
   $("#auth").hidden = true;
   $("#app").hidden = false;
   go(location.hash.slice(1) || "murals");
+  mountAssistant();
   refreshPublishState();
   resumePublishPoll();
   countNewInquiries();
@@ -309,7 +343,7 @@ sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_OUT") showLogin(); });
 // ---------------------------------------------------------------- routing
 $("#tabs").addEventListener("click", (e) => { const b = e.target.closest(".tab"); if (b) go(b.dataset.view); });
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v && v !== state.view) go(v); });
-const views = { assistant: viewAssistant, murals: viewMurals, inquiries: viewInquiries, areas: viewAreas, studio: viewStudio, numbers: viewNumbers, account: viewAccount };
+const views = { murals: viewMurals, inquiries: viewInquiries, areas: viewAreas, studio: viewStudio, numbers: viewNumbers, account: viewAccount };
 function go(v) {
   if (!views[v]) v = "murals";
   state.view = v;
@@ -871,24 +905,16 @@ function renderChat() {
   const stop = $("#chatStop"); if (stop) stop.hidden = !chat.busy;
 }
 
-async function viewAssistant() {
-  $("#view").innerHTML = `
-    <div class="view-head" style="margin-bottom:12px"><div><h1>Assistant</h1></div>
-      <button class="btn ghost small" type="button" id="newChat">New chat</button></div>
-    <div class="chat">
-      <div class="chat-log" id="chatLog"></div>
-      <form class="composer" id="composer">
-        <div class="attachments" id="attachments"></div>
-        <textarea id="chatInput" placeholder="Ask for a change…" rows="2"></textarea>
-        <div class="composer-bar">
-          <label class="btn ghost small" title="Attach photos" style="cursor:pointer">📎 Photo<input type="file" accept="image/*" multiple hidden id="chatFiles" /></label>
-          <span class="spacer"></span>
-          <button class="btn ghost small" type="button" id="chatStop" hidden>Stop</button>
-          <button class="btn primary" type="submit" id="chatSend">Send</button>
-        </div>
-      </form>
-    </div>`;
+function setChatOpen(open) {
+  $("#sideChat").hidden = !open;
+  document.body.classList.toggle("chat-open", open);
+  try { localStorage.setItem("im-assistant-open", open ? "1" : "0"); } catch {}
+  if (open) { renderChat(); if (matchMedia("(min-width: 1100px)").matches) $("#chatInput").focus(); }
+}
+function mountAssistant() {
   renderChat(); renderAttachments();
+  $("#chatFab").onclick = () => setChatOpen(true);
+  $("#closeChat").onclick = () => setChatOpen(false);
   const input = $("#chatInput");
   input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !matchMedia("(max-width: 640px)").matches) { e.preventDefault(); $("#composer").requestSubmit(); } });
   $("#composer").onsubmit = (e) => { e.preventDefault(); sendChat(); };
@@ -906,6 +932,9 @@ async function viewAssistant() {
     if (chat.thread.codeChanged && !confirm("This chat has design changes that aren't live yet. Start a new chat anyway? (The preview is kept, but the assistant will start fresh.)")) return;
     chat.thread = { branch: newBranch(), messages: [], codeChanged: false }; chat.pending = null; saveThread(); renderChat();
   };
+  let open;
+  try { open = localStorage.getItem("im-assistant-open"); } catch {}
+  setChatOpen(open === null || open === undefined ? matchMedia("(min-width: 1100px)").matches : open === "1");
 }
 function renderAttachments() {
   const box = $("#attachments"); if (!box) return;
@@ -962,6 +991,7 @@ async function runLoop() {
       const data = await assistantCall({ messages: forApi(chat.thread.messages) });
       chat.thread.messages.push({ role: "assistant", content: data.content });
       if (data.content.some((c) => c.type === "tool_use" && ["edit_file", "write_file", "delete_file"].includes(c.name))) chat.thread.codeChanged = true;
+      if (data.content.some((c) => c.type === "tool_use" && ["db_insert", "db_update", "db_delete"].includes(c.name))) chat.changedContent = true;
       let results = data.results || [];
       for (const t of data.pending || []) {
         const r = await askApproval(t);
@@ -981,6 +1011,8 @@ async function runLoop() {
     fail(e, "Assistant");
   } finally {
     chat.busy = false; chat.pending = null; saveThread(); renderChat(); refreshPublishState();
+    if (chat.changedContent && !$("#drawerRoot").children.length) go(state.view);
+    chat.changedContent = false;
   }
 }
 
