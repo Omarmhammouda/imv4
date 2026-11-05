@@ -4,7 +4,8 @@
 //
 // Secrets (Edge Function → Secrets, or `supabase secrets set`):
 //   RESEND_API_KEY   — from resend.com
-//   NOTIFY_TO        — where to send (default info@insomniamurals.com)
+//   NOTIFY_TO        — where to send; comma-separated for several
+//                      (default nia@insomniamurals.com, info@insomniamurals.com)
 //   NOTIFY_FROM      — verified sender, e.g. "Insomnia Murals <inquiries@insomniamurals.com>"
 //   WEBHOOK_SECRET   — shared secret; the webhook must send it as the x-webhook-secret header
 //
@@ -31,7 +32,10 @@ interface Inquiry {
 }
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const NOTIFY_TO = Deno.env.get("NOTIFY_TO") ?? "info@insomniamurals.com";
+const NOTIFY_TO = (Deno.env.get("NOTIFY_TO") || "nia@insomniamurals.com,info@insomniamurals.com")
+  .split(",")
+  .map((a) => a.trim())
+  .filter(Boolean);
 const NOTIFY_FROM = Deno.env.get("NOTIFY_FROM") ?? "Insomnia Murals <inquiries@insomniamurals.com>";
 const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET") ?? "";
 
@@ -113,7 +117,7 @@ Deno.serve(async (req) => {
     },
     body: JSON.stringify({
       from: NOTIFY_FROM,
-      to: [NOTIFY_TO],
+      to: NOTIFY_TO,
       reply_to: r.email ? [r.email] : undefined,
       subject: `New inquiry — ${r.name ?? "Unknown"}${r.location ? ` (${r.location})` : ""}`,
       html,

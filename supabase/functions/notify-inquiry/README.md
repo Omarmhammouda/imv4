@@ -25,7 +25,7 @@ Edge Functions → Secrets (or `supabase secrets set KEY=value`):
 | Secret | Value |
 |---|---|
 | `RESEND_API_KEY` | from step 1 |
-| `NOTIFY_TO` | `info@insomniamurals.com` |
+| `NOTIFY_TO` | `nia@insomniamurals.com,info@insomniamurals.com` (comma-separated) |
 | `NOTIFY_FROM` | `Insomnia Murals <inquiries@insomniamurals.com>` (must be on the verified domain) |
 | `WEBHOOK_SECRET` | any long random string (reuse it in step 4) |
 
