@@ -166,6 +166,37 @@
   .inq-photo { max-width: 260px; border-radius: 8px; margin-bottom: 14px; }
   @media (max-width: 520px) { .kv { grid-template-columns: 1fr; gap: 0; } .kv dd { margin-bottom: 8px; } }
 
+  /* ---------- assistant ---------- */
+  .chat { display: flex; flex-direction: column; height: calc(100dvh - 200px); min-height: 420px; }
+  .chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 2px 16px; }
+  .msg { max-width: 760px; line-height: 1.55; }
+  .msg.user { align-self: flex-end; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px 14px 4px 14px; padding: 10px 14px; white-space: pre-wrap; }
+  .msg.user img { max-width: 220px; border-radius: 8px; margin-top: 8px; }
+  .msg.bot { align-self: flex-start; padding: 2px 2px; }
+  .msg.bot p { margin: 0 0 8px; } .msg.bot p:last-child { margin: 0; }
+  .msg.bot ul { margin: 0 0 8px; padding-left: 20px; }
+  .msg.bot code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .msg.bot a { color: var(--accent); }
+  .act { align-self: flex-start; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .act::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex: none; }
+  .act.err { color: #ff8a80; } .act.err::before { background: #ff8a80; }
+  .approve { align-self: flex-start; background: var(--panel); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; max-width: 560px; }
+  .approve b { display: block; margin-bottom: 4px; }
+  .approve .muted { font-size: 14px; margin: 0 0 12px; }
+  .approve .row-btns { display: flex; gap: 8px; }
+  .thinking { align-self: flex-start; color: var(--muted); font-size: 14px; }
+  .composer { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px; }
+  .composer textarea { border: 0; background: none; min-height: 52px; max-height: 200px; padding: 4px 6px; resize: none; }
+  .composer textarea:focus { border: 0; }
+  .composer-bar { display: flex; align-items: center; gap: 8px; }
+  .composer-bar .spacer { flex: 1; }
+  .attachments { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 6px 6px; }
+  .attachments .photo { width: 64px; height: 64px; aspect-ratio: auto; }
+  .chat-empty { margin: auto; text-align: center; color: var(--muted); max-width: 440px; }
+  .chat-empty h3 { font-family: var(--display); font-size: 28px; text-transform: uppercase; color: var(--text); margin: 0 0 8px; }
+  .suggest { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
+  @media (max-width: 640px) { .chat { height: calc(100dvh - 170px); } }
+
   /* ---------- toast ---------- */
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 600; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.4); max-width: calc(100% - 32px); }
   .toast.err { background: #ff8a80; }
@@ -197,6 +228,7 @@
       </div>
     </div>
     <nav class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-view="assistant">Assistant</button>
       <button class="tab" role="tab" data-view="murals">Murals</button>
       <button class="tab" role="tab" data-view="inquiries">Inquiries <span class="count" id="newCount" hidden></span></button>
       <button class="tab" role="tab" data-view="areas">Areas</button>
@@ -277,7 +309,7 @@ sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_OUT") showLogin(); });
 // ---------------------------------------------------------------- routing
 $("#tabs").addEventListener("click", (e) => { const b = e.target.closest(".tab"); if (b) go(b.dataset.view); });
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v && v !== state.view) go(v); });
-const views = { murals: viewMurals, inquiries: viewInquiries, areas: viewAreas, studio: viewStudio, numbers: viewNumbers, account: viewAccount };
+const views = { assistant: viewAssistant, murals: viewMurals, inquiries: viewInquiries, areas: viewAreas, studio: viewStudio, numbers: viewNumbers, account: viewAccount };
 function go(v) {
   if (!views[v]) v = "murals";
   state.view = v;
@@ -739,6 +771,232 @@ async function viewInquiries() {
       toast("Inquiry deleted"); countNewInquiries(); el.remove();
     };
   });
+}
+
+// ================================================================ ASSISTANT
+const THREAD_KEY = "im-assistant-thread";
+const newBranch = () => `nia-${Date.now().toString(36)}`;
+function loadThread() {
+  try { const t = JSON.parse(localStorage.getItem(THREAD_KEY) || "null"); if (t?.branch && Array.isArray(t.messages)) return t; } catch {}
+  return { branch: newBranch(), messages: [], codeChanged: false };
+}
+function saveThread() { try { localStorage.setItem(THREAD_KEY, JSON.stringify(chat.thread)); } catch {} }
+const chat = { thread: loadThread(), busy: false, stop: false, attachments: [], pending: null };
+
+const TOOL_LABELS = {
+  db_select: (i) => `Looked at ${i.table}`,
+  db_insert: (i) => `Added to ${i.table}`,
+  db_update: (i) => `Updated ${i.table}`,
+  db_delete: (i) => `Delete from ${i.table}`,
+  publish_site: () => "Publish the site",
+  list_files: () => "Looked through the site's files",
+  read_file: (i) => `Read ${i.path}`,
+  edit_file: (i) => `Edited ${i.path}`,
+  write_file: (i) => `Saved ${i.path}`,
+  delete_file: (i) => `Deleted ${i.path}`,
+  preview_status: () => "Checked the preview",
+  push_preview_live: () => "Push the preview live",
+};
+const APPROVAL_TEXT = {
+  db_delete: (i) => ({ title: `Delete from ${i.table}?`, body: `Removes the matching ${i.table === "projects" ? "mural" : "row"} (${Object.entries(i.match || {}).map(([k, v]) => `${k} = ${v}`).join(", ")}). It disappears from the site on the next publish.` }),
+  publish_site: (i) => ({ title: "Publish to the live site?", body: (i.summary ? i.summary + " " : "") + "The live site rebuilds in about 2 minutes." }),
+  push_preview_live: (i) => ({ title: "Push these design changes live?", body: (i.summary ? i.summary + " " : "") + "Make sure you've checked the preview. The live site rebuilds in about 2 minutes." }),
+};
+
+function md(text) {
+  const lines = esc(text).split("\n");
+  let out = "", inList = false;
+  for (const raw of lines) {
+    let l = raw
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>')
+      .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>");
+    const li = l.match(/^\s*[-*•]\s+(.*)/);
+    if (li) { if (!inList) { out += "<ul>"; inList = true; } out += `<li>${li[1]}</li>`; continue; }
+    if (inList) { out += "</ul>"; inList = false; }
+    if (l.trim()) out += `<p>${l}</p>`;
+  }
+  return out + (inList ? "</ul>" : "");
+}
+
+function renderChat() {
+  const log = $("#chatLog");
+  if (!log) return;
+  const msgs = chat.thread.messages;
+  const resultFor = {};
+  for (const m of msgs) if (m.role === "user" && Array.isArray(m.content)) for (const c of m.content) if (c.type === "tool_result") resultFor[c.tool_use_id] = c;
+  let html = "";
+  if (!msgs.length) {
+    html = `<div class="chat-empty"><h3>Studio assistant</h3>
+      <p>Ask for changes in plain words — add a mural, update your contact info, change a headline, rework a page. Design changes come back as a preview link before anything goes live.</p>
+      <div class="suggest">
+        ${["Add a new mural", "Change the home page headline", "What inquiries came in this week?", "Make the contact page feel warmer"].map((t) => `<button class="chip" type="button" data-suggest="${esc(t)}">${esc(t)}</button>`).join("")}
+      </div></div>`;
+  }
+  for (const m of msgs) {
+    if (m.role === "user") {
+      const parts = Array.isArray(m.content) ? m.content : [{ type: "text", text: m.content }];
+      const texts = parts.filter((c) => c.type === "text" && !c.hidden).map((c) => c.text).join("\n");
+      const imgs = parts.filter((c) => c.type === "image").map((c) => `<img src="${esc(c.source?.url)}" alt="" />`).join("");
+      if (texts || imgs) html += `<div class="msg user">${esc(texts)}${imgs}</div>`;
+    } else {
+      for (const c of m.content) {
+        if (c.type === "text" && c.text.trim()) html += `<div class="msg bot">${md(c.text)}</div>`;
+        if (c.type === "tool_use") {
+          const r = resultFor[c.id];
+          const label = (TOOL_LABELS[c.name] || (() => c.name))(c.input || {});
+          if (!r) continue;
+          const isErr = r.is_error || String(r.content).startsWith("Declined");
+          html += `<div class="act ${isErr ? "err" : ""}">${esc(label)}${isErr ? " — " + esc(String(r.content).replace(/^Error:\s*/, "").slice(0, 160)) : ""}</div>`;
+        }
+      }
+    }
+  }
+  if (chat.pending) {
+    const t = chat.pending.current;
+    const a = (APPROVAL_TEXT[t.name] || (() => ({ title: t.name, body: "" })))(t.input || {});
+    html += `<div class="approve"><b>${esc(a.title)}</b><p class="muted">${esc(a.body)}</p>
+      <div class="row-btns"><button class="btn primary small" type="button" id="approveYes">Approve</button><button class="btn ghost small" type="button" id="approveNo">Not now</button></div></div>`;
+  }
+  if (chat.busy && !chat.pending) html += `<div class="thinking"><span class="spin"></span> Working on it…</div>`;
+  log.innerHTML = html;
+  log.scrollTop = log.scrollHeight;
+  $$("[data-suggest]", log).forEach((b) => (b.onclick = () => { $("#chatInput").value = b.dataset.suggest; $("#chatInput").focus(); }));
+  if (chat.pending) {
+    $("#approveYes").onclick = () => decide(true);
+    $("#approveNo").onclick = () => decide(false);
+  }
+  const send = $("#chatSend"); if (send) { send.disabled = chat.busy; send.textContent = chat.busy ? "Working…" : "Send"; }
+  const stop = $("#chatStop"); if (stop) stop.hidden = !chat.busy;
+}
+
+async function viewAssistant() {
+  $("#view").innerHTML = `
+    <div class="view-head" style="margin-bottom:12px"><div><h1>Assistant</h1></div>
+      <button class="btn ghost small" type="button" id="newChat">New chat</button></div>
+    <div class="chat">
+      <div class="chat-log" id="chatLog"></div>
+      <form class="composer" id="composer">
+        <div class="attachments" id="attachments"></div>
+        <textarea id="chatInput" placeholder="Ask for a change…" rows="2"></textarea>
+        <div class="composer-bar">
+          <label class="btn ghost small" title="Attach photos" style="cursor:pointer">📎 Photo<input type="file" accept="image/*" multiple hidden id="chatFiles" /></label>
+          <span class="spacer"></span>
+          <button class="btn ghost small" type="button" id="chatStop" hidden>Stop</button>
+          <button class="btn primary" type="submit" id="chatSend">Send</button>
+        </div>
+      </form>
+    </div>`;
+  renderChat(); renderAttachments();
+  const input = $("#chatInput");
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !matchMedia("(max-width: 640px)").matches) { e.preventDefault(); $("#composer").requestSubmit(); } });
+  $("#composer").onsubmit = (e) => { e.preventDefault(); sendChat(); };
+  $("#chatStop").onclick = () => { chat.stop = true; };
+  $("#chatFiles").onchange = async (e) => {
+    const files = [...e.target.files]; e.target.value = "";
+    for (const f of files) {
+      try { chat.attachments.push({ uploading: true }); renderAttachments(); const url = await upload(f, "chat"); chat.attachments = chat.attachments.filter((a) => !a.uploading); chat.attachments.push({ url }); }
+      catch (err) { chat.attachments = chat.attachments.filter((a) => !a.uploading); fail(err, "Upload failed"); }
+      renderAttachments();
+    }
+  };
+  $("#newChat").onclick = () => {
+    if (chat.busy) return;
+    if (chat.thread.codeChanged && !confirm("This chat has design changes that aren't live yet. Start a new chat anyway? (The preview is kept, but the assistant will start fresh.)")) return;
+    chat.thread = { branch: newBranch(), messages: [], codeChanged: false }; chat.pending = null; saveThread(); renderChat();
+  };
+}
+function renderAttachments() {
+  const box = $("#attachments"); if (!box) return;
+  box.innerHTML = chat.attachments.map((a, i) => a.uploading ? `<div class="photo"><div class="none" style="position:absolute;inset:0;display:grid;place-items:center"><span class="spin"></span></div></div>` :
+    `<div class="photo"><img src="${esc(a.url)}" alt="" /><div class="tools" style="justify-content:flex-end"><button class="icon" type="button" data-rmatt="${i}" aria-label="Remove">✕</button></div></div>`).join("");
+  $$("[data-rmatt]", box).forEach((b) => (b.onclick = () => { chat.attachments.splice(+b.dataset.rmatt, 1); renderAttachments(); }));
+}
+
+// Make sure every tool call in the history has a result (e.g. after Stop).
+function repairThread() {
+  const msgs = chat.thread.messages;
+  const last = msgs[msgs.length - 1];
+  if (last?.role === "assistant") {
+    const ids = last.content.filter((c) => c.type === "tool_use").map((c) => c.id);
+    if (ids.length) msgs.push({ role: "user", content: ids.map((id) => ({ type: "tool_result", tool_use_id: id, content: "Cancelled — the admin stopped this step.", is_error: true })) });
+  }
+}
+
+async function sendChat() {
+  if (chat.busy) return;
+  const text = $("#chatInput").value.trim();
+  const imgs = chat.attachments.filter((a) => a.url);
+  if (!text && !imgs.length) return;
+  if (chat.attachments.some((a) => a.uploading)) return toast("Wait for the photo to finish uploading");
+  repairThread();
+  const parts = [];
+  for (const a of imgs) parts.push({ type: "image", source: { type: "url", url: a.url } });
+  if (imgs.length) parts.push({ type: "text", text: `[Attached image URL${imgs.length > 1 ? "s" : ""}: ${imgs.map((a) => a.url).join(" ")}]`, hidden: true });
+  parts.push({ type: "text", text: text || "(see attached)" });
+  const msgs = chat.thread.messages;
+  const last = msgs[msgs.length - 1];
+  if (last?.role === "user") last.content = [...(Array.isArray(last.content) ? last.content : [{ type: "text", text: last.content }]), ...parts];
+  else msgs.push({ role: "user", content: parts });
+  $("#chatInput").value = ""; chat.attachments = []; renderAttachments();
+  saveThread();
+  await runLoop();
+}
+
+// Strip UI-only fields before sending to the API.
+const forApi = (messages) => messages.map((m) => ({ role: m.role, content: Array.isArray(m.content) ? m.content.map(({ hidden, ...c }) => c) : m.content }));
+
+async function assistantCall(body) {
+  const res = await fetch("/api/assistant", { method: "POST", headers: { ...(await authHeader()), "content-type": "application/json" }, body: JSON.stringify({ branch: chat.thread.branch, ...body }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+async function runLoop() {
+  chat.busy = true; chat.stop = false; renderChat();
+  try {
+    for (let step = 0; step < 30; step++) {
+      if (chat.stop) break;
+      const data = await assistantCall({ messages: forApi(chat.thread.messages) });
+      chat.thread.messages.push({ role: "assistant", content: data.content });
+      if (data.content.some((c) => c.type === "tool_use" && ["edit_file", "write_file", "delete_file"].includes(c.name))) chat.thread.codeChanged = true;
+      let results = data.results || [];
+      for (const t of data.pending || []) {
+        const r = await askApproval(t);
+        results.push(r);
+      }
+      saveThread();
+      if (!results.length) break; // Claude is done for now
+      // keep results in the same order as the tool calls
+      const order = data.content.filter((c) => c.type === "tool_use").map((c) => c.id);
+      results.sort((a, b) => order.indexOf(a.tool_use_id) - order.indexOf(b.tool_use_id));
+      chat.thread.messages.push({ role: "user", content: results });
+      for (const r of results) if (String(r.content).includes('"start_new_branch":true')) { chat.thread.branch = newBranch(); chat.thread.codeChanged = false; }
+      saveThread(); renderChat();
+      if (results.some((r) => /publish/i.test(r.content) && !r.is_error)) refreshPublishState();
+    }
+  } catch (e) {
+    fail(e, "Assistant");
+  } finally {
+    chat.busy = false; chat.pending = null; saveThread(); renderChat(); refreshPublishState();
+  }
+}
+
+function askApproval(toolUse) {
+  return new Promise((resolve) => { chat.pending = { current: toolUse, resolve }; renderChat(); });
+}
+async function decide(approve) {
+  const p = chat.pending; if (!p) return;
+  $("#approveYes").disabled = true; $("#approveNo").disabled = true;
+  let result;
+  if (!approve) result = { type: "tool_result", tool_use_id: p.current.id, content: "Declined — the admin chose not to do this." };
+  else {
+    try { result = (await assistantCall({ mode: "execute", tool_use: p.current })).result; }
+    catch (e) { result = { type: "tool_result", tool_use_id: p.current.id, content: `Error: ${e.message}`, is_error: true }; }
+  }
+  chat.pending = null; renderChat(); p.resolve(result);
 }
 
 // ================================================================ ACCOUNT
