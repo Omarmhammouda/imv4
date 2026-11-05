@@ -23,6 +23,7 @@ function rng(seed: number) {
 function loadImg(src: string) {
   return new Promise<HTMLImageElement>((res, rej) => {
     const i = new Image();
+    i.crossOrigin = "anonymous"; // walls may be hosted on Supabase Storage (WebGL needs CORS)
     i.onload = () => res(i);
     i.onerror = rej;
     i.src = src;

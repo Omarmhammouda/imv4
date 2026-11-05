@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#0b0b0c" />
+<title>Studio Admin — Insomnia Murals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@600;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --panel: #141416;
+    --panel-2: #1b1b1e;
+    --line: #2a2a2f;
+    --text: #efede8;
+    --muted: #8d8b88;
+    --accent: #e5352b;
+    --accent-ink: #fff;
+    --ok: #4cc38a;
+    --warn: #f0b429;
+    --radius: 10px;
+    --display: "Big Shoulders", "Arial Narrow", sans-serif;
+    --body: "Hanken Grotesk", system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  img { display: block; max-width: 100%; }
+  [hidden] { display: none !important; }
+
+  /* ---------- auth screen ---------- */
+  .auth { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+  .auth-card { width: 100%; max-width: 380px; }
+  .brand { font-family: var(--display); font-weight: 800; letter-spacing: .02em; text-transform: uppercase; line-height: .95; }
+  .brand small { display: block; font-family: var(--body); font-weight: 600; font-size: 12px; letter-spacing: .14em; color: var(--muted); margin-top: 8px; }
+  .auth .brand { font-size: 44px; margin-bottom: 28px; }
+  .auth .brand span { color: var(--accent); }
+  .auth-msg { margin-top: 14px; font-size: 14px; color: var(--muted); }
+  .auth-msg.err { color: #ff8a80; }
+
+  /* ---------- shell ---------- */
+  .top { position: sticky; top: 0; z-index: 20; background: rgba(11,11,12,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .top-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; max-width: 1180px; margin: 0 auto; }
+  .top .brand { font-size: 22px; flex: 1; min-width: 0; }
+  .top .brand span { color: var(--accent); }
+  .pub { display: flex; align-items: center; gap: 10px; }
+  .pub-status { font-size: 13px; color: var(--muted); text-align: right; line-height: 1.25; }
+  .pub-status b { display: block; color: var(--text); font-weight: 600; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 6px; vertical-align: 1px; }
+  .dot.warn { background: var(--warn); }
+  .dot.busy { background: var(--accent); animation: pulse 1s infinite alternate; }
+  @keyframes pulse { to { opacity: .3; } }
+  .tabs { display: flex; gap: 4px; padding: 0 12px; max-width: 1180px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 10px 12px; color: var(--muted); font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .tab .count { display: inline-block; min-width: 18px; padding: 0 6px; margin-left: 4px; border-radius: 9px; background: var(--accent); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 96px; }
+  .view-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  h1 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 40px; line-height: 1; margin: 0; letter-spacing: .01em; }
+  h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 22px; letter-spacing: .03em; margin: 28px 0 12px; color: var(--muted); }
+  .lede { color: var(--muted); margin: 6px 0 0; max-width: 60ch; }
+
+  /* ---------- controls ---------- */
+  .btn { appearance: none; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 9px 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; line-height: 1.2; }
+  .btn:hover { border-color: #46464d; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: none; }
+  .btn.danger { color: #ff8a80; background: none; }
+  .btn.small { padding: 6px 10px; font-size: 13px; }
+  .btn.block { width: 100%; justify-content: center; padding: 12px; }
+  label.field { display: block; margin-bottom: 14px; }
+  .field > span { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .field > em { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 5px; }
+  input[type=text], input[type=email], input[type=password], input[type=number], input[type=url], input[type=tel], select, textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; outline: none;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 14px; }
+  @media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } h1 { font-size: 32px; } .pub-status { display: none; } }
+  .toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; margin-bottom: 14px; }
+  .toggle input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .panel + .panel { margin-top: 14px; }
+  .muted { color: var(--muted); }
+  .empty { padding: 36px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); }
+
+  /* ---------- murals ---------- */
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .chip { appearance: none; border: 1px solid var(--line); background: none; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .card { appearance: none; text-align: left; padding: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
+  .card:hover { border-color: #46464d; }
+  .thumb { aspect-ratio: 4 / 3; background: #050506; position: relative; overflow: hidden; }
+  .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .thumb .none { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+  .badge { position: absolute; top: 8px; left: 8px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; }
+  .card-body { padding: 12px 14px 14px; }
+  .card-title { font-weight: 700; line-height: 1.25; }
+  .card-meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ---------- drawer editor ---------- */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 40; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%); background: var(--panel); border-left: 1px solid var(--line); z-index: 41; display: flex; flex-direction: column; }
+  .drawer-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .drawer-head h3 { flex: 1; margin: 0; font-family: var(--display); font-size: 24px; text-transform: uppercase; font-weight: 800; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 18px; }
+  .drawer-foot { display: flex; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--panel); }
+  .drawer-foot .spacer { flex: 1; }
+  .section-label { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 22px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .section-label:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+  .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .photo { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #050506; border: 1px solid var(--line); }
+  .photo img, .photo video { width: 100%; height: 100%; object-fit: cover; }
+  .photo .cover { position: absolute; left: 6px; top: 6px; background: var(--text); color: var(--bg); font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 2px 6px; border-radius: 3px; }
+  .photo .tools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: 4px; background: linear-gradient(transparent, rgba(0,0,0,.8)); }
+  .icon { appearance: none; border: 0; width: 30px; height: 30px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff; cursor: pointer; font-size: 15px; line-height: 30px; padding: 0; }
+  .icon:hover { background: rgba(0,0,0,.9); }
+  .icon:disabled { opacity: .3; }
+  .dropzone { border: 1px dashed #46464d; border-radius: 8px; padding: 14px; text-align: center; color: var(--muted); font-size: 14px; cursor: pointer; display: block; }
+  .dropzone:hover, .dropzone.over { border-color: var(--accent); color: var(--text); }
+  .dropzone input { display: none; }
+  .wallprev { display: grid; grid-template-columns: 160px 1fr; gap: 14px; align-items: start; margin-bottom: 10px; }
+  .wallprev .photo { aspect-ratio: 4/3; }
+  @media (max-width: 520px) { .wallprev { grid-template-columns: 1fr; } }
+  .progress { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  /* ---------- tables / rows ---------- */
+  .rows { display: flex; flex-direction: column; gap: 10px; }
+  .row { display: grid; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; }
+  .row.areas { grid-template-columns: 1fr 90px auto auto; }
+  .row.stats { grid-template-columns: 110px 1fr 80px auto; }
+  .row .n { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  @media (max-width: 640px) {
+    .row.areas { grid-template-columns: 1fr 80px; }
+    .row.stats { grid-template-columns: 90px 1fr; }
+  }
+  .row .actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+  /* ---------- inquiries ---------- */
+  .inq { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+  .inq + .inq { margin-top: 10px; }
+  .inq summary { list-style: none; cursor: pointer; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+  .inq summary::-webkit-details-marker { display: none; }
+  .inq-name { font-weight: 700; }
+  .inq-sub { font-size: 13px; color: var(--muted); grid-column: 1; }
+  .inq-date { font-size: 13px; color: var(--muted); text-align: right; }
+  .pill { justify-self: end; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .pill.new { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .inq-body { padding: 0 16px 16px; border-top: 1px solid var(--line); }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 14px; margin: 14px 0; font-size: 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; word-break: break-word; }
+  .vision { background: var(--bg); border-radius: 8px; padding: 12px 14px; white-space: pre-wrap; font-size: 14px; margin-bottom: 14px; }
+  .inq-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .inq-actions select { width: auto; }
+  .inq-photo { max-width: 260px; border-radius: 8px; margin-bottom: 14px; }
+  @media (max-width: 520px) { .kv { grid-template-columns: 1fr; gap: 0; } .kv dd { margin-bottom: 8px; } }
+
+  /* ---------- toast ---------- */
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 600; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.4); max-width: calc(100% - 32px); }
+  .toast.err { background: #ff8a80; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: rot .7s linear infinite; vertical-align: -2px; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ============ SIGN IN ============ -->
+<section class="auth" id="auth" hidden>
+  <form class="auth-card" id="loginForm">
+    <div class="brand">Insomnia<br /><span>Murals</span><small>Studio admin</small></div>
+    <label class="field"><span>Email</span><input type="email" id="loginEmail" autocomplete="username" required /></label>
+    <label class="field"><span>Password</span><input type="password" id="loginPass" autocomplete="current-password" required /></label>
+    <button class="btn primary block" type="submit" id="loginBtn">Sign in</button>
+    <p class="auth-msg" id="loginMsg">Forgot your password? Ask Omar to reset it.</p>
+  </form>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">Insomnia <span>Admin</span></div>
+      <div class="pub">
+        <div class="pub-status" id="pubStatus"></div>
+        <button class="btn primary" id="publishBtn" type="button">Publish</button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-view="murals">Murals</button>
+      <button class="tab" role="tab" data-view="inquiries">Inquiries <span class="count" id="newCount" hidden></span></button>
+      <button class="tab" role="tab" data-view="areas">Areas</button>
+      <button class="tab" role="tab" data-view="studio">Studio info</button>
+      <button class="tab" role="tab" data-view="numbers">Numbers</button>
+      <button class="tab" role="tab" data-view="account">Account</button>
+    </nav>
+  </header>
+  <main id="view"></main>
+</div>
+
+<div id="drawerRoot"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://tiixwcfbzxvxhostzkgj.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpaXh3Y2Zienh2eGhvc3R6a2dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MDMxODMsImV4cCI6MjA5NzQ3OTE4M30.Gj7FNzTL6jjsVM-3heg2Kt9aBwNbFNZAhMpmULnZBrE";
+const BUCKET = "site-media";
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const clean = (v) => { const s = String(v ?? "").trim(); return s && !["null", "undefined", "n/a"].includes(s.toLowerCase()) ? s : ""; };
+const nullIfEmpty = (v) => clean(v) || null;
+const isVideo = (u) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || "");
+
+const state = { view: "murals", regions: [], projects: [], user: null, filter: "all" };
+
+// ---------------------------------------------------------------- toast
+let toastTimer;
+function toast(msg, err = false) {
+  const t = $("#toast");
+  t.textContent = msg; t.className = "toast" + (err ? " err" : ""); t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), err ? 6000 : 2600);
+}
+function fail(e, what = "Something went wrong") {
+  console.error(e);
+  toast(`${what}: ${e?.message || e}`, true);
+}
+
+// ---------------------------------------------------------------- auth
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return showLogin();
+  const { data: ok, error } = await sb.rpc("is_admin");
+  if (error || ok !== true) {
+    await sb.auth.signOut();
+    return showLogin("This account doesn't have admin access.");
+  }
+  state.user = session.user;
+  $("#auth").hidden = true;
+  $("#app").hidden = false;
+  go(location.hash.slice(1) || "murals");
+  refreshPublishState();
+  resumePublishPoll();
+  countNewInquiries();
+}
+function showLogin(msg) {
+  $("#app").hidden = true;
+  $("#auth").hidden = false;
+  if (msg) { $("#loginMsg").textContent = msg; $("#loginMsg").className = "auth-msg err"; }
+  $("#loginEmail").focus();
+}
+$("#loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#loginBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Signing in';
+  const { error } = await sb.auth.signInWithPassword({ email: $("#loginEmail").value.trim(), password: $("#loginPass").value });
+  btn.disabled = false; btn.textContent = "Sign in";
+  if (error) { $("#loginMsg").textContent = "That email and password don't match."; $("#loginMsg").className = "auth-msg err"; return; }
+  boot();
+});
+sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_OUT") showLogin(); });
+
+// ---------------------------------------------------------------- routing
+$("#tabs").addEventListener("click", (e) => { const b = e.target.closest(".tab"); if (b) go(b.dataset.view); });
+window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v && v !== state.view) go(v); });
+const views = { murals: viewMurals, inquiries: viewInquiries, areas: viewAreas, studio: viewStudio, numbers: viewNumbers, account: viewAccount };
+function go(v) {
+  if (!views[v]) v = "murals";
+  state.view = v;
+  if (location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v);
+  $$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.view === v)));
+  $("#view").innerHTML = '<p class="muted"><span class="spin"></span> Loading…</p>';
+  views[v]().catch((e) => { $("#view").innerHTML = `<div class="empty">Couldn't load this page. ${esc(e.message)}</div>`; console.error(e); });
+}
+
+// ---------------------------------------------------------------- uploads
+async function shrinkImage(file, max = 2400) {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 3_000_000 && /jpe?g|webp/.test(file.type)) return file;
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.86));
+    return blob ? new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" }) : file;
+  } catch {
+    return file; // e.g. HEIC on a browser that can't decode it — upload as-is
+  }
+}
+async function upload(file, folder = "murals") {
+  if (file.size > 50 * 1024 * 1024) throw new Error(`${file.name} is over 50 MB`);
+  const f = file.type.startsWith("image/") ? await shrinkImage(file) : file;
+  const ext = (f.name.split(".").pop() || "bin").toLowerCase();
+  const base = f.name.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "file";
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${base}.${ext}`;
+  const { error } = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type || undefined, cacheControl: "31536000", upsert: false });
+  if (error) throw error;
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+// ---------------------------------------------------------------- data
+async function loadRegions() {
+  const { data, error } = await sb.from("regions").select("*").order("sort");
+  if (error) throw error;
+  state.regions = data;
+  return data;
+}
+async function loadProjects() {
+  const { data, error } = await sb.from("projects").select("*").order("sort").order("id");
+  if (error) throw error;
+  state.projects = data;
+  return data;
+}
+const regionName = (slug) => state.regions.find((r) => r.slug === slug)?.name || "";
+function slugify(s) { return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "area"; }
+
+// ================================================================ MURALS
+async function viewMurals() {
+  await Promise.all([loadRegions(), loadProjects()]);
+  const filters = [["all", "All"], ["home", "On home page"], ...state.regions.map((r) => [r.slug, r.name]), ["none", "No area"]];
+  const list = state.projects.filter((p) =>
+    state.filter === "all" ? true :
+    state.filter === "home" ? p.on_home :
+    state.filter === "none" ? !p.region_slug :
+    p.region_slug === state.filter);
+  if (state.filter === "home") list.sort((a, b) => a.home_sort - b.home_sort);
+
+  $("#view").innerHTML = `
+    <div class="view-head">
+      <div>
+        <h1>Murals</h1>
+        <p class="lede">Every mural on the site. Murals with an area show on the Work page; turn on “Show on home page” to give one a wall on the home page walk.</p>
+      </div>
+      <button class="btn primary" id="addMural" type="button">+ Add mural</button>
+    </div>
+    <div class="chips">${filters.map(([k, l]) => `<button class="chip" data-f="${esc(k)}" aria-pressed="${state.filter === k}">${esc(l)}</button>`).join("")}</div>
+    ${list.length ? `<div class="cards">${list.map(card).join("")}</div>` : `<div class="empty">No murals here yet.</div>`}`;
+
+  $("#addMural").onclick = () => editMural(null);
+  $$(".chip").forEach((c) => (c.onclick = () => { state.filter = c.dataset.f; viewMurals(); }));
+  $$(".card").forEach((c) => (c.onclick = () => editMural(state.projects.find((p) => String(p.id) === c.dataset.id))));
+}
+function card(p) {
+  const img = clean(p.wall_image) || (p.images || []).map(clean).find(Boolean) || "";
+  const vid = clean(p.video);
+  const media = img && !isVideo(img)
+    ? `<img src="${esc(img)}" alt="" loading="lazy" />`
+    : vid ? `<video src="${esc(vid)}#t=1" muted playsinline preload="metadata"></video>`
+    : `<div class="none">No photo yet</div>`;
+  const meta = [regionName(p.region_slug) || clean(p.place) || "No area", p.year].filter(Boolean).join(" · ");
+  return `<button class="card" data-id="${p.id}" type="button">
+    <div class="thumb">${media}${p.on_home ? `<span class="badge">Home #${esc(p.home_sort)}</span>` : ""}</div>
+    <div class="card-body"><div class="card-title">${esc(clean(p.title) || "Untitled")}</div><div class="card-meta">${esc(meta)}</div></div>
+  </button>`;
+}
+
+function editMural(p) {
+  const isNew = !p;
+  const d = {
+    id: p?.id ?? null,
+    title: clean(p?.title), client: clean(p?.client), year: p?.year ?? "", size: clean(p?.size),
+    region_slug: p?.region_slug ?? (state.regions[0]?.slug ?? ""), place: clean(p?.place),
+    images: (p?.images || []).map(clean).filter(Boolean), video: clean(p?.video),
+    on_home: p?.on_home ?? false,
+    home_sort: p?.home_sort ?? (Math.max(0, ...state.projects.filter((x) => x.on_home).map((x) => x.home_sort)) + 1),
+    wall_image: clean(p?.wall_image), sort: p?.sort ?? 0,
+  };
+  let dirty = false;
+
+  const root = $("#drawerRoot");
+  root.innerHTML = `
+    <div class="scrim" data-close></div>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="Edit mural">
+      <div class="drawer-head"><h3>${isNew ? "New mural" : "Edit mural"}</h3><button class="btn ghost small" data-close type="button">Close</button></div>
+      <form class="drawer-body" id="muralForm" autocomplete="off">
+        <div class="section-label">Details</div>
+        <label class="field"><span>Title *</span><input type="text" name="title" required value="${esc(d.title)}" /></label>
+        <div class="grid2">
+          <label class="field"><span>Client</span><input type="text" name="client" value="${esc(d.client)}" /></label>
+          <label class="field"><span>Year</span><input type="number" name="year" min="1990" max="2100" value="${esc(d.year)}" /></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span>Size</span><input type="text" name="size" placeholder="e.g. 20ft x 12ft" value="${esc(d.size)}" /></label>
+          <label class="field"><span>Area</span>
+            <select name="region_slug">
+              ${state.regions.map((r) => `<option value="${esc(r.slug)}" ${r.slug === d.region_slug ? "selected" : ""}>${esc(r.name)}</option>`).join("")}
+              <option value="" ${!d.region_slug ? "selected" : ""}>No area (home page only)</option>
+              <option value="__new">+ New area…</option>
+            </select>
+          </label>
+        </div>
+        <label class="field" id="newAreaField" hidden><span>New area name</span><input type="text" name="new_area" placeholder="e.g. Queens" /></label>
+        <div class="grid2">
+          <label class="field"><span>Place shown on home wall</span><input type="text" name="place" placeholder="Defaults to the area" value="${esc(d.place)}" /></label>
+          <label class="field"><span>Order in its area</span><input type="number" name="sort" value="${esc(d.sort)}" /><em>Lower numbers come first.</em></label>
+        </div>
+
+        <div class="section-label">Photos</div>
+        <p class="muted" style="margin:0 0 10px;font-size:14px">The first photo is the cover. Use the arrows to reorder.</p>
+        <div class="photos" id="photos"></div>
+        <label class="dropzone" id="photoDrop"><input type="file" accept="image/*" multiple /> + Add photos (tap or drop)</label>
+        <div class="progress" id="photoProgress"></div>
+
+        <div class="section-label">Video (optional)</div>
+        <p class="muted" style="margin:0 0 10px;font-size:14px">Plays as the mural's card on the Work page. MP4 works best, up to 50 MB.</p>
+        <div id="videoBox"></div>
+        <label class="field" style="margin-top:10px"><span>…or paste a video link</span><input type="url" name="video" placeholder="https://…mp4" value="${esc(d.video)}" /></label>
+
+        <div class="section-label">Home page</div>
+        <label class="toggle"><input type="checkbox" name="on_home" ${d.on_home ? "checked" : ""} /> Show on home page walk</label>
+        <div id="homeFields" ${d.on_home ? "" : "hidden"}>
+          <label class="field"><span>Position on the walk</span><input type="number" name="home_sort" min="1" value="${esc(d.home_sort)}" /><em>1 is the first wall visitors pass.</em></label>
+          <div class="field"><span>Wall image</span>
+            <div class="wallprev"><div class="photo" id="wallPrev"></div>
+              <div>
+                <p class="muted" style="margin:0 0 10px;font-size:14px">A tight crop of just the painted wall — it's wrapped onto the 3D wall. Leave empty to use the cover photo.</p>
+                <label class="dropzone" id="wallDrop"><input type="file" accept="image/*" /> Upload wall image</label>
+                <button class="btn ghost small" type="button" id="wallClear" style="margin-top:8px">Remove wall image</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+      <div class="drawer-foot">
+        ${isNew ? "" : `<button class="btn danger" type="button" id="delMural">Delete</button>`}
+        <span class="spacer"></span>
+        <button class="btn ghost" type="button" data-close>Cancel</button>
+        <button class="btn primary" type="button" id="saveMural">${isNew ? "Add mural" : "Save"}</button>
+      </div>
+    </aside>`;
+  const form = $("#muralForm");
+  form.addEventListener("input", () => (dirty = true));
+
+  const close = () => {
+    if (dirty && !confirm("Discard your changes?")) return;
+    root.innerHTML = ""; document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (e) => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  $$("[data-close]", root).forEach((b) => (b.onclick = close));
+
+  form.elements.region_slug.onchange = () => { $("#newAreaField").hidden = form.elements.region_slug.value !== "__new"; if (!$("#newAreaField").hidden) form.elements.new_area.focus(); };
+  form.elements.on_home.onchange = () => { $("#homeFields").hidden = !form.elements.on_home.checked; };
+
+  function renderPhotos() {
+    $("#photos").innerHTML = d.images.map((u, i) => `
+      <div class="photo">
+        ${isVideo(u) ? `<video src="${esc(u)}#t=1" muted preload="metadata"></video>` : `<img src="${esc(u)}" alt="" />`}
+        ${i === 0 ? `<span class="cover">COVER</span>` : ""}
+        <div class="tools">
+          <span><button class="icon" type="button" data-mv="${i}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="Move earlier">←</button>
+          <button class="icon" type="button" data-mv="${i}" data-dir="1" ${i === d.images.length - 1 ? "disabled" : ""} aria-label="Move later">→</button></span>
+          <button class="icon" type="button" data-rm="${i}" aria-label="Remove photo">✕</button>
+        </div>
+      </div>`).join("");
+    $$("[data-mv]").forEach((b) => (b.onclick = () => { const i = +b.dataset.mv, j = i + +b.dataset.dir; [d.images[i], d.images[j]] = [d.images[j], d.images[i]]; dirty = true; renderPhotos(); renderWall(); }));
+    $$("[data-rm]").forEach((b) => (b.onclick = () => { d.images.splice(+b.dataset.rm, 1); dirty = true; renderPhotos(); renderWall(); }));
+  }
+  function renderWall() {
+    const src = d.wall_image || d.images[0] || "";
+    $("#wallPrev").innerHTML = src ? `<img src="${esc(src)}" alt="" />${d.wall_image ? "" : `<span class="cover">COVER</span>`}` : "";
+    $("#wallClear").hidden = !d.wall_image;
+  }
+  function renderVideo() {
+    const v = clean(form.elements.video.value);
+    $("#videoBox").innerHTML = v
+      ? `<div class="photo" style="aspect-ratio:16/9;max-width:320px"><video src="${esc(v)}" muted controls playsinline preload="metadata"></video></div>
+         <button class="btn ghost small" type="button" id="vidClear" style="margin-top:8px">Remove video</button>`
+      : `<label class="dropzone" id="vidDrop"><input type="file" accept="video/mp4,video/webm,video/quicktime" /> + Upload video</label><div class="progress" id="vidProgress"></div>`;
+    if (v) $("#vidClear").onclick = () => { form.elements.video.value = ""; dirty = true; renderVideo(); };
+    else wireDrop($("#vidDrop"), async (files) => {
+      $("#vidProgress").innerHTML = '<span class="spin"></span> Uploading video…';
+      try { form.elements.video.value = await upload(files[0], "videos"); dirty = true; renderVideo(); }
+      catch (e) { $("#vidProgress").textContent = ""; fail(e, "Upload failed"); }
+    });
+  }
+  form.elements.video.addEventListener("change", renderVideo);
+
+  wireDrop($("#photoDrop"), async (files) => {
+    const prog = $("#photoProgress");
+    for (let i = 0; i < files.length; i++) {
+      prog.innerHTML = `<span class="spin"></span> Uploading ${i + 1} of ${files.length}…`;
+      try { d.images.push(await upload(files[i])); dirty = true; renderPhotos(); renderWall(); }
+      catch (e) { fail(e, "Upload failed"); }
+    }
+    prog.textContent = "";
+  });
+  wireDrop($("#wallDrop"), async (files) => {
+    try { $("#wallDrop").lastChild.textContent = " Uploading…"; d.wall_image = await upload(files[0], "walls"); dirty = true; renderWall(); }
+    catch (e) { fail(e, "Upload failed"); }
+    finally { $("#wallDrop").lastChild.textContent = " Upload wall image"; }
+  });
+  $("#wallClear").onclick = () => { d.wall_image = ""; dirty = true; renderWall(); };
+  renderPhotos(); renderWall(); renderVideo();
+
+  $("#saveMural").onclick = async () => {
+    if (!form.reportValidity()) return;
+    const btn = $("#saveMural"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saving';
+    try {
+      let region = form.elements.region_slug.value;
+      if (region === "__new") {
+        const name = clean(form.elements.new_area.value);
+        if (!name) throw new Error("Give the new area a name");
+        let slug = slugify(name);
+        if (state.regions.some((r) => r.slug === slug)) slug += "-" + Date.now().toString(36).slice(-4);
+        const { error } = await sb.from("regions").insert({ slug, name, sort: Math.max(0, ...state.regions.map((r) => r.sort)) + 1, mural_count: 0 });
+        if (error) throw error;
+        region = slug;
+      }
+      const year = parseInt(form.elements.year.value, 10);
+      const row = {
+        title: clean(form.elements.title.value), client: nullIfEmpty(form.elements.client.value),
+        year: Number.isFinite(year) ? year : null, size: nullIfEmpty(form.elements.size.value),
+        region_slug: region || null, place: nullIfEmpty(form.elements.place.value),
+        sort: parseInt(form.elements.sort.value, 10) || 0,
+        images: d.images.length ? d.images : null, video: nullIfEmpty(form.elements.video.value),
+        on_home: form.elements.on_home.checked, home_sort: parseInt(form.elements.home_sort.value, 10) || 1,
+        wall_image: nullIfEmpty(d.wall_image),
+      };
+      if (row.on_home && !row.wall_image && !row.images) throw new Error("Add a photo or wall image so it can go on the home page");
+      const q = isNew ? sb.from("projects").insert(row) : sb.from("projects").update(row).eq("id", d.id);
+      const { error } = await q;
+      if (error) throw error;
+      dirty = false; root.innerHTML = ""; document.removeEventListener("keydown", onKey);
+      toast(isNew ? "Mural added" : "Saved");
+      refreshPublishState(); viewMurals();
+    } catch (e) { fail(e, "Couldn't save"); btn.disabled = false; btn.textContent = isNew ? "Add mural" : "Save"; }
+  };
+  if (!isNew) $("#delMural").onclick = async () => {
+    if (!confirm(`Delete “${d.title}”? It comes off the site the next time you publish.`)) return;
+    const { error } = await sb.from("projects").delete().eq("id", d.id);
+    if (error) return fail(error, "Couldn't delete");
+    dirty = false; root.innerHTML = ""; document.removeEventListener("keydown", onKey);
+    toast("Mural deleted"); refreshPublishState(); viewMurals();
+  };
+  form.elements.title.focus();
+}
+
+function wireDrop(zone, onFiles) {
+  const input = zone.querySelector("input");
+  input.onchange = () => { if (input.files.length) onFiles([...input.files]); input.value = ""; };
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("over"));
+  zone.addEventListener("drop", (e) => { e.preventDefault(); zone.classList.remove("over"); if (e.dataTransfer.files.length) onFiles([...e.dataTransfer.files]); });
+}
+
+// ================================================================ AREAS
+async function viewAreas() {
+  await Promise.all([loadRegions(), loadProjects()]);
+  const count = (slug) => state.projects.filter((p) => p.region_slug === slug).length;
+  $("#view").innerHTML = `
+    <div class="view-head"><div><h1>Areas</h1><p class="lede">The neighbourhoods the Work page groups murals by. Lower order numbers show first.</p></div></div>
+    <div class="rows" id="areaRows">
+      ${state.regions.map((r) => `
+        <form class="row areas" data-slug="${esc(r.slug)}">
+          <input type="text" name="name" value="${esc(r.name)}" aria-label="Area name" required />
+          <input type="number" name="sort" value="${esc(r.sort)}" aria-label="Order" />
+          <span class="n">${count(r.slug)} mural${count(r.slug) === 1 ? "" : "s"}</span>
+          <span class="actions"><button class="btn small" type="submit">Save</button><button class="btn danger small" type="button" data-del>Delete</button></span>
+        </form>`).join("")}
+      <form class="row areas" id="newArea">
+        <input type="text" name="name" placeholder="New area, e.g. Queens" aria-label="New area name" required />
+        <input type="number" name="sort" value="${Math.max(0, ...state.regions.map((r) => r.sort)) + 1}" aria-label="Order" />
+        <span class="n"></span>
+        <span class="actions"><button class="btn primary small" type="submit">+ Add area</button></span>
+      </form>
+    </div>`;
+  $$("#areaRows form[data-slug]").forEach((f) => {
+    f.onsubmit = async (e) => {
+      e.preventDefault();
+      const { error } = await sb.from("regions").update({ name: clean(f.elements.name.value), sort: parseInt(f.elements.sort.value, 10) || 0 }).eq("slug", f.dataset.slug);
+      if (error) return fail(error, "Couldn't save");
+      toast("Area saved"); refreshPublishState();
+    };
+    f.querySelector("[data-del]").onclick = async () => {
+      const n = count(f.dataset.slug);
+      if (!confirm(n ? `Delete this area? Its ${n} mural${n === 1 ? "" : "s"} will be kept but won't appear on the Work page until you give them a new area.` : "Delete this area?")) return;
+      const { error } = await sb.from("regions").delete().eq("slug", f.dataset.slug);
+      if (error) return fail(error, "Couldn't delete");
+      toast("Area deleted"); refreshPublishState(); viewAreas();
+    };
+  });
+  $("#newArea").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = e.target; const name = clean(f.elements.name.value);
+    let slug = slugify(name);
+    if (state.regions.some((r) => r.slug === slug)) slug += "-" + Date.now().toString(36).slice(-4);
+    const { error } = await sb.from("regions").insert({ slug, name, sort: parseInt(f.elements.sort.value, 10) || 0, mural_count: 0 });
+    if (error) return fail(error, "Couldn't add");
+    toast("Area added"); refreshPublishState(); viewAreas();
+  };
+}
+
+// ================================================================ STUDIO INFO
+const SETTINGS_FIELDS = [
+  ["studio_name", "Studio name", "text"], ["tagline", "Tagline", "text"],
+  ["email", "Email", "email"], ["phone", "Phone", "tel"],
+  ["instagram_url", "Instagram link", "url", "https://www.instagram.com/yourhandle/"],
+  ["whatsapp", "WhatsApp number", "tel", "Digits with country code, e.g. 16465551234"],
+  ["behance_url", "Behance link", "url"], ["hours", "Hours", "text"],
+  ["address_line1", "Address line 1", "text"], ["address_line2", "Address line 2", "text"],
+  ["address_note", "Address note", "text"], ["founding_year", "Founded (year)", "number"],
+];
+async function viewStudio() {
+  const { data, error } = await sb.from("settings").select("*").eq("id", 1).single();
+  if (error) throw error;
+  $("#view").innerHTML = `
+    <div class="view-head"><div><h1>Studio info</h1><p class="lede">Contact details shown on the Contact page, menu and footer. Leave a field empty to hide it.</p></div></div>
+    <form class="panel" id="studioForm">
+      <div class="grid2">
+        ${SETTINGS_FIELDS.map(([k, label, type, hint]) => `
+          <label class="field"><span>${esc(label)}</span>
+            <input type="${type}" name="${k}" value="${esc(clean(data[k]))}" ${k === "studio_name" ? "required" : ""} ${hint && type !== "url" ? `placeholder="${esc(hint)}"` : type === "url" && hint ? `placeholder="${esc(hint)}"` : ""} />
+          </label>`).join("")}
+      </div>
+      <button class="btn primary" type="submit">Save studio info</button>
+    </form>`;
+  $("#studioForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = e.target; const row = {};
+    for (const [k, , type] of SETTINGS_FIELDS) {
+      const v = clean(f.elements[k].value);
+      row[k] = type === "number" ? (parseInt(v, 10) || null) : (k === "whatsapp" ? (v.replace(/\D/g, "") || null) : (v || null));
+    }
+    const { error } = await sb.from("settings").update(row).eq("id", 1);
+    if (error) return fail(error, "Couldn't save");
+    toast("Studio info saved"); refreshPublishState();
+  };
+}
+
+// ================================================================ NUMBERS (about-page stats)
+async function viewNumbers() {
+  const { data, error } = await sb.from("stats").select("*").order("sort");
+  if (error) throw error;
+  $("#view").innerHTML = `
+    <div class="view-head"><div><h1>Numbers</h1><p class="lede">The big figures on the About page, like “61 murals delivered”.</p></div></div>
+    <div class="rows" id="statRows">
+      ${data.map((s) => `
+        <form class="row stats" data-id="${s.id}">
+          <input type="text" name="value" value="${esc(s.value)}" aria-label="Number" required />
+          <input type="text" name="label" value="${esc(s.label)}" aria-label="Label" required />
+          <input type="number" name="sort" value="${esc(s.sort)}" aria-label="Order" />
+          <span class="actions"><button class="btn small" type="submit">Save</button><button class="btn danger small" type="button" data-del>Delete</button></span>
+        </form>`).join("")}
+      <form class="row stats" id="newStat">
+        <input type="text" name="value" placeholder="e.g. 70+" aria-label="Number" required />
+        <input type="text" name="label" placeholder="e.g. Murals delivered" aria-label="Label" required />
+        <input type="number" name="sort" value="${Math.max(0, ...data.map((s) => s.sort)) + 1}" aria-label="Order" />
+        <span class="actions"><button class="btn primary small" type="submit">+ Add</button></span>
+      </form>
+    </div>`;
+  $$("#statRows form[data-id]").forEach((f) => {
+    f.onsubmit = async (e) => {
+      e.preventDefault();
+      const { error } = await sb.from("stats").update({ value: clean(f.elements.value.value), label: clean(f.elements.label.value), sort: parseInt(f.elements.sort.value, 10) || 0 }).eq("id", f.dataset.id);
+      if (error) return fail(error, "Couldn't save");
+      toast("Saved"); refreshPublishState();
+    };
+    f.querySelector("[data-del]").onclick = async () => {
+      if (!confirm("Delete this number?")) return;
+      const { error } = await sb.from("stats").delete().eq("id", f.dataset.id);
+      if (error) return fail(error, "Couldn't delete");
+      toast("Deleted"); refreshPublishState(); viewNumbers();
+    };
+  });
+  $("#newStat").onsubmit = async (e) => {
+    e.preventDefault(); const f = e.target;
+    const { error } = await sb.from("stats").insert({ value: clean(f.elements.value.value), label: clean(f.elements.label.value), sort: parseInt(f.elements.sort.value, 10) || 0 });
+    if (error) return fail(error, "Couldn't add");
+    toast("Added"); refreshPublishState(); viewNumbers();
+  };
+}
+
+// ================================================================ INQUIRIES
+const INQ_FIELDS = [["email", "Email"], ["phone", "Phone"], ["project_type", "Project"], ["budget", "Budget"], ["location", "Location"], ["wall_size", "Wall size"], ["surface", "Surface"], ["placement", "Placement"], ["permission", "Permission"], ["timeline", "Timeline"], ["heard_about", "Heard about us"]];
+const STATUSES = [["new", "New"], ["replied", "Replied"], ["booked", "Booked"], ["archived", "Archived"]];
+async function countNewInquiries() {
+  const { count } = await sb.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new");
+  const el = $("#newCount"); el.hidden = !count; el.textContent = count || "";
+}
+async function viewInquiries() {
+  const { data, error } = await sb.from("inquiries").select("*").order("created_at", { ascending: false });
+  if (error) throw error;
+  const show = state.inqFilter || "open";
+  const list = data.filter((q) => show === "all" ? true : show === "open" ? q.status !== "archived" : q.status === show);
+  const fmt = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  $("#view").innerHTML = `
+    <div class="view-head"><div><h1>Inquiries</h1><p class="lede">Everything sent through the site's intake form. New ones are also emailed to nia@ and info@.</p></div></div>
+    <div class="chips">${[["open", "Open"], ...STATUSES, ["all", "All"]].map(([k, l]) => `<button class="chip" data-f="${k}" aria-pressed="${show === k}">${l}</button>`).join("")}</div>
+    ${list.length ? list.map((q) => `
+      <details class="inq" data-id="${esc(q.id)}">
+        <summary>
+          <span class="inq-name">${esc(q.name)}</span><span class="inq-date">${esc(fmt(q.created_at))}</span>
+          <span class="inq-sub">${esc([q.project_type, q.location, q.budget].filter(clean).join(" · ") || q.email)}</span>
+          <span class="pill ${q.status === "new" ? "new" : ""}">${esc(STATUSES.find(([k]) => k === q.status)?.[1] || q.status)}</span>
+        </summary>
+        <div class="inq-body">
+          <dl class="kv">${INQ_FIELDS.filter(([k]) => clean(q[k])).map(([k, l]) => `<dt>${l}</dt><dd>${esc(q[k])}</dd>`).join("")}</dl>
+          ${clean(q.message) ? `<div class="vision">${esc(q.message)}</div>` : ""}
+          ${clean(q.wall_photo_url) ? `<a href="${esc(q.wall_photo_url)}" target="_blank" rel="noopener"><img class="inq-photo" src="${esc(q.wall_photo_url)}" alt="Wall photo" loading="lazy" /></a>` : ""}
+          <div class="inq-actions">
+            <a class="btn primary small" href="mailto:${esc(q.email)}?subject=${encodeURIComponent("Your mural inquiry — Insomnia Murals")}">Reply by email</a>
+            ${clean(q.phone) ? `<a class="btn small" href="tel:${esc(q.phone.replace(/[^\d+]/g, ""))}">Call</a>` : ""}
+            <select data-status aria-label="Status">${STATUSES.map(([k, l]) => `<option value="${k}" ${q.status === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+            <span class="spacer" style="flex:1"></span>
+            <button class="btn danger small" type="button" data-del>Delete</button>
+          </div>
+        </div>
+      </details>`).join("") : `<div class="empty">No inquiries here.</div>`}`;
+  $$(".chip").forEach((c) => (c.onclick = () => { state.inqFilter = c.dataset.f; viewInquiries(); }));
+  $$(".inq").forEach((el) => {
+    const id = el.dataset.id;
+    el.querySelector("[data-status]").onchange = async (e) => {
+      const { error } = await sb.from("inquiries").update({ status: e.target.value }).eq("id", id);
+      if (error) return fail(error, "Couldn't update");
+      toast("Status updated"); countNewInquiries();
+      const pill = el.querySelector(".pill"); pill.textContent = e.target.selectedOptions[0].text; pill.classList.toggle("new", e.target.value === "new");
+    };
+    el.querySelector("[data-del]").onclick = async () => {
+      if (!confirm("Delete this inquiry for good?")) return;
+      const { error } = await sb.from("inquiries").delete().eq("id", id);
+      if (error) return fail(error, "Couldn't delete");
+      toast("Inquiry deleted"); countNewInquiries(); el.remove();
+    };
+  });
+}
+
+// ================================================================ ACCOUNT
+async function viewAccount() {
+  $("#view").innerHTML = `
+    <div class="view-head"><div><h1>Account</h1><p class="lede">Signed in as ${esc(state.user?.email)}.</p></div></div>
+    <form class="panel" id="pwForm" style="max-width:460px">
+      <label class="field"><span>New password</span><input type="password" name="pw" minlength="8" autocomplete="new-password" required /></label>
+      <label class="field"><span>Confirm new password</span><input type="password" name="pw2" minlength="8" autocomplete="new-password" required /></label>
+      <button class="btn primary" type="submit">Change password</button>
+    </form>
+    <div class="panel" style="max-width:460px">
+      <p style="margin:0 0 12px">Changes you save here go live when you press <b>Publish</b> — the site rebuilds in about two minutes.</p>
+      <button class="btn" type="button" id="signOut">Sign out</button>
+    </div>`;
+  $("#pwForm").onsubmit = async (e) => {
+    e.preventDefault(); const f = e.target;
+    if (f.elements.pw.value !== f.elements.pw2.value) return toast("Passwords don't match", true);
+    const { error } = await sb.auth.updateUser({ password: f.elements.pw.value });
+    if (error) return fail(error, "Couldn't change password");
+    f.reset(); toast("Password changed");
+  };
+  $("#signOut").onclick = () => sb.auth.signOut();
+}
+
+// ================================================================ PUBLISH
+let publishing = false, pollTimer = null;
+async function authHeader() {
+  const { data: { session } } = await sb.auth.getSession();
+  return { authorization: `Bearer ${session?.access_token || ""}` };
+}
+function setStatus(kind, title, sub) {
+  const cls = kind === "busy" ? "busy" : kind === "warn" ? "warn" : "";
+  $("#pubStatus").innerHTML = `<b><span class="dot ${cls}"></span>${esc(title)}</b>${sub ? esc(sub) : ""}`;
+}
+async function refreshPublishState() {
+  if (publishing) return;
+  const { data } = await sb.from("site_state").select("*").eq("id", 1).single();
+  const btn = $("#publishBtn");
+  if (data && (!data.published_at || new Date(data.changed_at) > new Date(data.published_at))) {
+    setStatus("warn", "Unpublished changes", "Press Publish to put them live");
+    btn.disabled = false;
+  } else {
+    setStatus("ok", "Live site is up to date", data?.published_at ? "Published " + ago(data.published_at) : "");
+    btn.disabled = false;
+  }
+}
+function ago(d) {
+  const s = (Date.now() - new Date(d)) / 1000;
+  if (s < 90) return "just now";
+  if (s < 3600) return Math.round(s / 60) + " min ago";
+  if (s < 86400) return Math.round(s / 3600) + " h ago";
+  return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+$("#publishBtn").onclick = async () => {
+  const btn = $("#publishBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Publishing';
+  try {
+    const res = await fetch("/api/publish", { method: "POST", headers: await authHeader() });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+    toast("Publishing — the site will update in about 2 minutes");
+    startPoll(body.startedAt);
+  } catch (e) {
+    fail(e, "Couldn't publish"); btn.textContent = "Publish"; btn.disabled = false;
+  }
+};
+// Every build writes /build.json with its finish time; once that's newer than
+// when we pressed Publish, the new site is live.
+async function liveBuildTime() {
+  const res = await fetch(`/build.json?t=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) return null;
+  const { builtAt } = await res.json();
+  return builtAt ? new Date(builtAt) : null;
+}
+function startPoll(startedAt) {
+  publishing = true;
+  const since = new Date(startedAt || Date.now());
+  $("#publishBtn").disabled = true; $("#publishBtn").innerHTML = '<span class="spin"></span> Publishing';
+  setStatus("busy", "Publishing…", "Usually takes about 2 minutes");
+  const done = (ok) => {
+    clearInterval(pollTimer); publishing = false;
+    $("#publishBtn").textContent = "Publish"; $("#publishBtn").disabled = false;
+    if (ok) { toast("Published — the site is live with your changes"); refreshPublishState(); }
+    else { setStatus("warn", "Still publishing?", "Taking longer than usual — let Omar know if it doesn't update"); }
+  };
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try {
+      const built = await liveBuildTime();
+      if (built && built > since) return done(true);
+    } catch { /* keep waiting */ }
+    if (Date.now() - since > 12 * 60 * 1000) done(false);
+  }, 8000);
+}
+async function resumePublishPoll() {
+  try {
+    const { data } = await sb.from("site_state").select("published_at").eq("id", 1).single();
+    if (!data?.published_at) return;
+    const pub = new Date(data.published_at);
+    if (Date.now() - pub > 12 * 60 * 1000) return; // old publish — nothing to wait for
+    const built = await liveBuildTime();
+    if (!built || built < pub) startPoll(data.published_at);
+  } catch { /* status is best-effort */ }
+}
+
+boot();
+</script>
+</body>
+</html>

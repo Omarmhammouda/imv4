@@ -16,6 +16,8 @@ export interface Wall {
   size: string;
   wall: string;
   photo: string;
+  /** Every photo of the mural for the lightbox (first = `photo`). */
+  photos?: string[];
 }
 
 const w = (n: number) => ({ wall: `/murals/wall-${n}.jpg`, photo: `/murals/photo-${n}.jpg` });
@@ -58,7 +60,7 @@ export function wallAsMural(x: Wall): Mural {
     size: x.size,
     regionName: x.place,
     regionSlug: "",
-    images: [x.photo],
+    images: x.photos?.length ? x.photos : [x.photo],
     video: "",
     cover: x.photo,
   };

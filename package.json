@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:export": "rm -rf .next/cache && STATIC_EXPORT=true next build",
+    "build:export": "rm -rf .next/cache && STATIC_EXPORT=true next build && node -e \"require('fs').writeFileSync('out/build.json', JSON.stringify({ builtAt: new Date().toISOString() }))\"",
     "start": "next start"
   },
   "dependencies": {

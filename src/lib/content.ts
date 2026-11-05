@@ -9,6 +9,7 @@ import {
   type Project,
 } from "./projects";
 import { getSupabase } from "./supabase";
+import type { Wall } from "./walls";
 
 export type { Chapter, Region, Project };
 
@@ -111,6 +112,8 @@ export interface SiteContent {
   murals: Mural[];
   stats: Stat[];
   totalMurals: number;
+  /** Home night-walk walls from Supabase (projects with on_home); empty → bundled walls. */
+  homeWalls: Wall[];
 }
 
 const fallbackMurals = buildMurals(fallbackRegions);
@@ -121,6 +124,7 @@ const fallbackContent: SiteContent = {
   murals: fallbackMurals,
   stats: fallbackStats,
   totalMurals: fallbackMurals.length,
+  homeWalls: [],
 };
 
 /**
@@ -225,6 +229,29 @@ export const getContent = cache(async (): Promise<SiteContent> => {
       }),
     );
 
+    const regionName = new Map(mappedRegions.map((r) => [r.id, r.name]));
+    const homeWalls: Wall[] = ((projects.data ?? []) as Record<string, unknown>[])
+      .filter((p) => p.on_home === true)
+      .sort((a, b) => Number(a.home_sort ?? 0) - Number(b.home_sort ?? 0))
+      .flatMap((p) => {
+        const photos = Array.isArray(p.images)
+          ? (p.images as unknown[]).map(cleanStr).filter((x): x is string => Boolean(x))
+          : [];
+        const wall = cleanStr(p.wall_image) ?? photos[0];
+        if (!wall) return []; // a wall needs an image to paint on
+        const title = (cleanStr(p.title) ?? "").trim();
+        return [{
+          title,
+          client: (cleanStr(p.client) ?? "").trim(),
+          place: cleanStr(p.place) ?? regionName.get(String(p.region_slug)) ?? "",
+          year: p.year ? String(p.year) : "",
+          size: (cleanStr(p.size) ?? "").trim(),
+          wall,
+          photo: photos[0] ?? wall,
+          photos: photos.length ? photos : [wall],
+        }];
+      });
+
     const finalRegions = mappedRegions.length ? mappedRegions : fallbackRegions;
     const murals = buildMurals(finalRegions);
     return {
@@ -234,6 +261,7 @@ export const getContent = cache(async (): Promise<SiteContent> => {
       murals,
       stats: mappedStats.length ? mappedStats : fallbackStats,
       totalMurals: murals.length,
+      homeWalls,
     };
   } catch (e) {
     // Network/unexpected failure while Supabase is configured — fail the build
