@@ -36,10 +36,10 @@ export const fallbackSettings: Settings = {
   studioName: "Insomnia Murals",
   tagline: "Nocturnal studio for large-scale murals & brand identity",
   email: "info@insomniamurals.com",
-  // phone / address / socials intentionally empty — components hide empty fields
-  phone: "",
+  // address / other socials intentionally empty — components hide empty fields
+  phone: "(646) 610-3989",
   whatsapp: "",
-  instagramUrl: "",
+  instagramUrl: "https://www.instagram.com/insom___nia/",
   behanceUrl: "",
   addressLine1: "",
   addressLine2: "",
@@ -311,3 +311,4 @@ export const getPostBySlug = cache(async (slug: string): Promise<Post | null> =>
   const posts = await getPosts();
   return posts.find((p) => p.slug === slug) ?? null;
 });
+

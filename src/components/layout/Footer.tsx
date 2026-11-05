@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Cta } from "@/components/ui/Cta";
 import { sfx } from "@/lib/sound";
 import type { Settings } from "@/lib/content";
+import { instagramHandle, telHref } from "@/lib/contactLinks";
 import styles from "./Footer.module.css";
 
 export default function Footer({
@@ -32,7 +33,13 @@ export default function Footer({
     },
     {
       title: "Connect",
-      links: [{ label: settings.email, href: `mailto:${settings.email}` }],
+      links: [
+        { label: settings.email, href: `mailto:${settings.email}` },
+        ...(settings.phone ? [{ label: settings.phone, href: telHref(settings.phone) }] : []),
+        ...(settings.instagramUrl
+          ? [{ label: instagramHandle(settings.instagramUrl), href: settings.instagramUrl }]
+          : []),
+      ],
     },
   ];
 
@@ -56,7 +63,8 @@ export default function Footer({
               <h3 className={styles.colTitle}>{col.title}</h3>
               <ul>
                 {col.links.map((l) => {
-                  const external = l.href.startsWith("http") || l.href.startsWith("mailto");
+                  const external =
+                    l.href.startsWith("http") || l.href.startsWith("mailto") || l.href.startsWith("tel");
                   return (
                     <li key={l.label}>
                       {external ? (

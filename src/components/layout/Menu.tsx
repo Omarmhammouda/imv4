@@ -8,6 +8,7 @@ import { useExperience } from "@/lib/store";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { sfx } from "@/lib/sound";
 import type { Settings } from "@/lib/content";
+import { instagramHandle, telHref } from "@/lib/contactLinks";
 import styles from "./Menu.module.css";
 
 const NAV = [
@@ -134,8 +135,19 @@ export default function Menu({ settings }: { settings: Settings }) {
               {settings.email}
             </a>
             {settings.phone && (
-              <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} data-cursor="link" className={styles.metaLink}>
+              <a href={telHref(settings.phone)} data-cursor="link" className={styles.metaLink}>
                 {settings.phone}
+              </a>
+            )}
+            {settings.instagramUrl && (
+              <a
+                href={settings.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor="link"
+                className={styles.metaLink}
+              >
+                {instagramHandle(settings.instagramUrl)}
               </a>
             )}
           </div>

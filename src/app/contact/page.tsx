@@ -3,6 +3,7 @@ import PageHero from "@/components/site/PageHero";
 import Reveal from "@/components/ui/Reveal";
 import ContactForm from "@/components/contact/ContactForm";
 import { getContent } from "@/lib/content";
+import { instagramHandle, telHref } from "@/lib/contactLinks";
 import c from "@/components/contact/contact.module.css";
 
 export const metadata: Metadata = {
@@ -41,6 +42,28 @@ export default async function ContactPage() {
                 {settings.email}
               </a>
             </div>
+            {settings.phone && (
+              <div className={c.block}>
+                <span className={c.blockLabel}>Phone</span>
+                <a className={`${c.blockValue} ${c.link}`} href={telHref(settings.phone)} data-cursor="link">
+                  {settings.phone}
+                </a>
+              </div>
+            )}
+            {settings.instagramUrl && (
+              <div className={c.block}>
+                <span className={c.blockLabel}>Instagram</span>
+                <a
+                  className={`${c.blockValue} ${c.link}`}
+                  href={settings.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-cursor="link"
+                >
+                  {instagramHandle(settings.instagramUrl)}
+                </a>
+              </div>
+            )}
             {settings.whatsapp && (
               <div className={c.block}>
                 <span className={c.blockLabel}>WhatsApp</span>
