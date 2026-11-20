@@ -9,6 +9,7 @@ import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { withBase } from "@/lib/asset";
 import { wallAsMural, type Wall } from "@/lib/walls";
 import type { Mural } from "@/lib/content";
+import { daylight } from "@/lib/daylight";
 import styles from "./NightWalk.module.css";
 
 const SPACING = 15; // street distance between walls
@@ -30,7 +31,7 @@ function loadImg(src: string) {
   });
 }
 
-/** The mural photo as a clean wall face — no brick or texture over it. */
+/** The mural photo, colour-accurate (sRGB, mip-mapped, sharp at an angle). */
 function paintedWall(img: HTMLImageElement) {
   const t = new THREE.Texture(img);
   t.colorSpace = THREE.SRGBColorSpace;
@@ -39,15 +40,74 @@ function paintedWall(img: HTMLImageElement) {
   return t;
 }
 
-function concreteTex() {
+/**
+ * The painted face of a wall. Not a lit PBR surface: the photo already *is* the
+ * mural, so we show its true colours and only shape the light over it —
+ * at night a soft pool from the lamp above (never brighter than the photo
+ * itself, so nothing washes out), by day even daylight. Skips tone mapping on
+ * purpose; that's what was flattening and bleaching the paint before.
+ */
+function muralMaterial(map: THREE.Texture) {
+  return new THREE.ShaderMaterial({
+    fog: true,
+    uniforms: {
+      map: { value: map },
+      uLamp: { value: 1 },
+      uDay: { value: 0 },
+      fogColor: { value: new THREE.Color() },
+      fogDensity: { value: 0 },
+      fogNear: { value: 1 },
+      fogFar: { value: 2000 },
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      #include <fog_pars_vertex>
+      void main() {
+        vUv = uv;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D map;
+      uniform float uLamp; // 0..1 how lit the nearby lamp is
+      uniform float uDay;  // 0 night .. 1 day
+      varying vec2 vUv;
+      #include <common>
+      #include <fog_pars_fragment>
+      void main() {
+        vec3 paint = texture2D(map, vUv).rgb;
+
+        // night: pool of light from the lamp at the top centre of the wall
+        float px = (vUv.x - 0.5) * 2.0;
+        float py = 1.0 - vUv.y;
+        float pool = exp(-(px * px * 0.55 + py * py * 0.85));
+        float lamp = 0.16 + 0.84 * pool * mix(0.35, 1.0, uLamp);
+        vec3 night = vec3(lamp) * mix(vec3(1.0), vec3(1.0, 0.95, 0.88), pool * uLamp * 0.6);
+
+        // day: even, true-colour daylight with a soft shade at the foot of the wall
+        float foot = 0.8 + 0.2 * smoothstep(0.0, 0.12, vUv.y);
+        vec3 day = vec3((0.94 + 0.06 * vUv.y) * foot);
+
+        gl_FragColor = vec4(paint * mix(night, day, uDay), 1.0);
+        #include <colorspace_fragment>
+        #include <fog_fragment>
+      }`,
+  });
+}
+
+/** Building surface. Night: dark concrete. Day: warm masonry in a few tones. */
+function concreteTex(day: boolean, tone = 0) {
   const c = document.createElement("canvas");
   c.width = c.height = 256;
   const g = c.getContext("2d")!;
-  const r = rng(7);
-  g.fillStyle = "#18181b";
+  const r = rng(7 + tone);
+  g.fillStyle = day ? ["#b9ad9c", "#9c6b5a", "#a9a7a2", "#c8bba3"][tone % 4] : "#18181b";
   g.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 2500; i++) {
-    g.fillStyle = `rgba(${r() > 0.5 ? 255 : 0},${r() > 0.5 ? 255 : 0},255,${r() * 0.05})`;
+    g.fillStyle = day
+      ? `rgba(${r() > 0.5 ? 255 : 40},${r() > 0.5 ? 245 : 35},${r() > 0.5 ? 230 : 30},${r() * 0.08})`
+      : `rgba(${r() > 0.5 ? 255 : 0},${r() > 0.5 ? 255 : 0},255,${r() * 0.05})`;
     g.fillRect(r() * 256, r() * 256, 2, 2);
   }
   const t = new THREE.CanvasTexture(c);
@@ -55,24 +115,79 @@ function concreteTex() {
   return t;
 }
 
-function windowsTex(seed: number) {
+/** Facade with windows. Night: a few lit rooms. Day: glass reflecting the sky. */
+function windowsTex(seed: number, day: boolean) {
   const c = document.createElement("canvas");
   c.width = 128;
   c.height = 256;
   const g = c.getContext("2d")!;
   const r = rng(seed);
-  g.fillStyle = "#0b0b0e";
+  g.fillStyle = day ? ["#b9ad9c", "#9c6b5a", "#a9a7a2", "#c8bba3"][((seed % 4) + 4) % 4] : "#0b0b0e";
   g.fillRect(0, 0, 128, 256);
   for (let y = 12; y < 250; y += 22)
     for (let x = 10; x < 120; x += 26) {
-      const lit = r() < 0.1;
-      g.fillStyle = lit ? `rgba(255,${215 + r() * 30 | 0},170,${0.5 + r() * 0.4})` : "rgba(38,38,44,.6)";
+      if (day) {
+        const glass = g.createLinearGradient(x, y, x + 14, y + 12);
+        const v = 70 + (r() * 40) | 0;
+        glass.addColorStop(0, `rgb(${v + 60},${v + 85},${v + 110})`);
+        glass.addColorStop(1, `rgb(${v - 10},${v + 5},${v + 25})`);
+        g.fillStyle = "rgba(60,52,45,.6)"; // sill shadow
+        g.fillRect(x - 1, y - 1, 16, 14);
+        g.fillStyle = glass;
+      } else {
+        const lit = r() < 0.1;
+        g.fillStyle = lit ? `rgba(255,${215 + r() * 30 | 0},170,${0.5 + r() * 0.4})` : "rgba(38,38,44,.6)";
+      }
       g.fillRect(x, y, 14, 12);
     }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
+
+/** Big gradient dome for the sky; colours are blended between night and day. */
+function skyDome() {
+  return new THREE.Mesh(
+    new THREE.SphereGeometry(150, 32, 16),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() } },
+      vertexShader: /* glsl */ `
+        varying float vH;
+        void main() {
+          vH = normalize(position).y;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uTop; uniform vec3 uHorizon;
+        varying float vH;
+        void main() {
+          gl_FragColor = vec4(mix(uHorizon, uTop, smoothstep(0.0, 0.55, vH)), 1.0);
+          #include <colorspace_fragment>
+        }`,
+    }),
+  );
+}
+
+/* night ↔ day palette */
+const NIGHT = {
+  skyTop: new THREE.Color(0x060609), horizon: new THREE.Color(0x0b0b0e), fog: 0.022,
+  hemiSky: new THREE.Color(0x4a5070), hemiGround: new THREE.Color(0x0b0b0e), hemi: 0.5,
+  sun: new THREE.Color(0x8a94c0), sunI: 0.25,
+  street: new THREE.Color(0x0e0e11), streetRough: 0.38, streetMetal: 0.35,
+  curb: new THREE.Color(0x1a1a1e), edge: new THREE.Color(0x2a2a30), bulb: new THREE.Color(0xfff2dc),
+  exposure: 1.1,
+};
+const DAY = {
+  skyTop: new THREE.Color(0x5f97cf), horizon: new THREE.Color(0xd7e2ec), fog: 0.011,
+  hemiSky: new THREE.Color(0xe6eef8), hemiGround: new THREE.Color(0x8a8174), hemi: 1.5,
+  sun: new THREE.Color(0xfff1dc), sunI: 2.4,
+  street: new THREE.Color(0x55565a), streetRough: 0.92, streetMetal: 0.02,
+  curb: new THREE.Color(0xa29d95), edge: new THREE.Color(0x9a958d), bulb: new THREE.Color(0x6f6c68),
+  exposure: 0.95,
+};
 
 function glowTex() {
   const c = document.createElement("canvas");
@@ -101,6 +216,13 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
   const [flying, setFlying] = useState(false);
   const [open, setOpen] = useState<Mural | null>(null);
   const [noGL, setNoGL] = useState(false);
+  const [isDay, setIsDay] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDay(daylight() > 0.5);
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, []);
   const openRef = useRef(setOpen);
   const { scrollTo, start: startScroll } = useLenis();
   const startSite = useExperience((s) => s.start);
@@ -129,22 +251,28 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
     renderer.setPixelRatio(Math.min(devicePixelRatio, narrow ? 1.5 : 2));
     renderer.setSize(innerWidth, innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = NIGHT.exposure;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     host.appendChild(renderer.domElement);
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b0b0e);
-    scene.fog = new THREE.FogExp2(0x0b0b0e, 0.022);
-    const camera = new THREE.PerspectiveCamera(narrow ? 72 : 55, innerWidth / innerHeight, 0.1, 200);
-
-    scene.add(new THREE.HemisphereLight(0x4a5070, 0x0b0b0e, 0.5));
-    const moon = new THREE.DirectionalLight(0x8a94c0, 0.25);
-    moon.position.set(-10, 20, 10);
-    scene.add(moon);
-
     const disposables: { dispose(): void }[] = [];
     const keep = <T extends { dispose(): void }>(x: T) => (disposables.push(x), x);
+
+    const scene = new THREE.Scene();
+    const fog = new THREE.FogExp2(0x0b0b0e, NIGHT.fog);
+    scene.fog = fog;
+    const camera = new THREE.PerspectiveCamera(narrow ? 72 : 55, innerWidth / innerHeight, 0.1, 400);
+
+    const sky = skyDome();
+    keep(sky.geometry); keep(sky.material);
+    const skyU = (sky.material as THREE.ShaderMaterial).uniforms;
+    scene.add(sky);
+
+    const hemi = new THREE.HemisphereLight(0x4a5070, 0x0b0b0e, NIGHT.hemi);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0x8a94c0, NIGHT.sunI); // the moon at night
+    sun.position.set(-10, 20, 10);
+    scene.add(sun);
 
     // wet street + curbs
     const len = N * SPACING + 80;
@@ -152,6 +280,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
       keep(new THREE.PlaneGeometry(60, len)),
       keep(new THREE.MeshStandardMaterial({ color: 0x0e0e11, roughness: 0.38, metalness: 0.35 })),
     );
+    const streetMat = street.material as THREE.MeshStandardMaterial;
     street.rotation.x = -Math.PI / 2;
     street.position.z = -len / 2 + 30;
     scene.add(street);
@@ -162,20 +291,32 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
       scene.add(curb);
     }
 
-    // dark buildings behind the walls
-    const conc = keep(concreteTex());
-    const concMat = keep(new THREE.MeshStandardMaterial({ map: conc }));
+    // buildings behind the walls — a night and a day look for each, swapped at dusk/dawn
+    const concNight = keep(concreteTex(false));
+    const facades: { mat: THREE.MeshStandardMaterial; night: THREE.Texture; day: THREE.Texture; lit: boolean }[] = [];
+    const sideDay: THREE.Texture[] = [0, 1, 2, 3].map((k) => keep(concreteTex(true, k)));
     for (let i = -2; i < N + 4; i++) {
       [-1, 1].forEach((s, k) => {
         const h = 10 + (((i * 7 + k * 3) % 5) + 5) % 5 * 3;
-        const win = (seed: number) => {
-          const t = keep(windowsTex(seed));
-          t.wrapS = t.wrapT = THREE.RepeatWrapping;
-          t.repeat.set(1.5, h / 9); // keep windows window-sized on tall facades
-          return keep(new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.32, roughness: 1 }));
+        const tone = Math.abs(i * 3 + k * 5) % 4;
+        const face = (seed: number, lit: boolean) => {
+          const night = keep(windowsTex(seed, false));
+          const day = keep(windowsTex(seed * 4 + tone, true)); // seed*4+tone → this building's tone
+          for (const t of [night, day]) {
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(1.5, h / 9); // keep windows window-sized on tall facades
+          }
+          const mat = keep(new THREE.MeshStandardMaterial({ map: night, emissive: 0xffffff, emissiveMap: night, emissiveIntensity: 0.32, roughness: 1 }));
+          facades.push({ mat, night, day, lit });
+          return mat;
+        };
+        const plain = () => {
+          const mat = keep(new THREE.MeshStandardMaterial({ map: concNight, roughness: 1 }));
+          facades.push({ mat, night: concNight, day: sideDay[tone], lit: false });
+          return mat;
         };
         const b = new THREE.Mesh(keep(new THREE.BoxGeometry(9, h, 12)), [
-          win(i * 31 + k), win(i * 31 + k + 5), concMat, concMat, concMat, concMat,
+          face(i * 31 + k, true), face(i * 31 + k + 5, true), plain(), plain(), plain(), plain(),
         ]);
         b.position.set(s * 16, h / 2, -i * SPACING - 4);
         scene.add(b);
@@ -184,9 +325,9 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
 
     const glow = keep(glowTex());
     const edgeMat = keep(new THREE.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.9 }));
-    const lamps: { spot: THREE.SpotLight; halo: THREE.Sprite; group: THREE.Group; side: number }[] = [];
+    const lamps: { spot: THREE.SpotLight; halo: THREE.Sprite; bulb: THREE.MeshBasicMaterial; group: THREE.Group; side: number }[] = [];
     const hits: THREE.Mesh[] = [];
-    const fronts: THREE.MeshStandardMaterial[] = [];
+    const fronts: THREE.ShaderMaterial[] = [];
     const wallX = narrow ? 5 : 6.3;
 
     // dust in the lamp light
@@ -219,10 +360,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
         if (wh > 7.4) { wh = 7.4; ww = wh * a; }
         const side = i % 2 === 0 ? -1 : 1;
         const tex = keep(paintedWall(img));
-        const front = keep(new THREE.MeshStandardMaterial({
-          map: tex, roughness: 0.82,
-          emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.35,
-        }));
+        const front = keep(muralMaterial(tex));
         fronts.push(front);
         const wall = new THREE.Mesh(keep(new THREE.BoxGeometry(ww, wh, 0.45)), [edgeMat, edgeMat, edgeMat, edgeMat, front, edgeMat]);
         wall.userData.i = i;
@@ -234,17 +372,18 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
         const lampY = wh / 2 + 0.6;
         const arm = new THREE.Mesh(keep(new THREE.BoxGeometry(0.08, 0.08, 1.4)), keep(new THREE.MeshStandardMaterial({ color: 0x111114 })));
         arm.position.set(0, lampY, 0.9);
-        const bulb = new THREE.Mesh(keep(new THREE.SphereGeometry(0.11, 16, 12)), keep(new THREE.MeshBasicMaterial({ color: 0xfff2dc })));
+        const bulbMat = keep(new THREE.MeshBasicMaterial({ color: 0xfff2dc }));
+        const bulb = new THREE.Mesh(keep(new THREE.SphereGeometry(0.11, 16, 12)), bulbMat);
         bulb.position.set(0, lampY - 0.1, 1.55);
         const halo = new THREE.Sprite(keep(new THREE.SpriteMaterial({ map: glow, color: 0xffe6c4, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })));
         halo.scale.set(2.2, 2.2, 1);
         halo.position.copy(bulb.position);
-        const spot = new THREE.SpotLight(0xfff0dc, 0, 22, 0.95, 0.65, 1.3);
+        const spot = new THREE.SpotLight(0xffe8cc, 0, 16, 0.9, 0.7, 1.4);
         spot.position.set(0, lampY - 0.1, 2.2);
         spot.target.position.set(0, -wh * 0.15, 0);
         g.add(arm, bulb, halo, spot, spot.target);
         scene.add(g);
-        lamps.push({ spot, halo, group: g, side });
+        lamps.push({ spot, halo, bulb: bulbMat, group: g, side });
         hits.push(wall);
       });
       ready = true;
@@ -286,6 +425,11 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
     addEventListener("click", onClick);
     addEventListener("resize", onResize);
 
+    // daylight: target from the clock (re-checked every minute), eased so dusk/dawn glides
+    let dayTarget = daylight(), day = dayTarget, dayTex: boolean | null = null;
+    const dayTimer = setInterval(() => { dayTarget = daylight(); }, 60_000);
+    const curbCol = curbMat.color, edgeCol = edgeMat.color;
+
     const look = new THREE.Vector3(), tmp = new THREE.Vector3();
     const clock = new THREE.Clock();
     let raf = 0;
@@ -311,12 +455,48 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
       }
       camera.lookAt(look);
 
+      day += (dayTarget - day) * Math.min(1, dt * 0.8);
+      const D = day, nightness = 1 - D;
+      skyU.uTop.value.lerpColors(NIGHT.skyTop, DAY.skyTop, D);
+      skyU.uHorizon.value.lerpColors(NIGHT.horizon, DAY.horizon, D);
+      fog.color.copy(skyU.uHorizon.value);
+      fog.density = THREE.MathUtils.lerp(NIGHT.fog, DAY.fog, D);
+      sky.position.copy(camera.position);
+      hemi.color.lerpColors(NIGHT.hemiSky, DAY.hemiSky, D);
+      hemi.groundColor.lerpColors(NIGHT.hemiGround, DAY.hemiGround, D);
+      hemi.intensity = THREE.MathUtils.lerp(NIGHT.hemi, DAY.hemi, D);
+      sun.color.lerpColors(NIGHT.sun, DAY.sun, D);
+      sun.intensity = THREE.MathUtils.lerp(NIGHT.sunI, DAY.sunI, D);
+      sun.position.set(THREE.MathUtils.lerp(-10, 14, D), 20, THREE.MathUtils.lerp(10, 4, D));
+      streetMat.color.lerpColors(NIGHT.street, DAY.street, D);
+      streetMat.roughness = THREE.MathUtils.lerp(NIGHT.streetRough, DAY.streetRough, D);
+      streetMat.metalness = THREE.MathUtils.lerp(NIGHT.streetMetal, DAY.streetMetal, D);
+      curbCol.lerpColors(NIGHT.curb, DAY.curb, D);
+      edgeCol.lerpColors(NIGHT.edge, DAY.edge, D);
+      renderer.toneMappingExposure = THREE.MathUtils.lerp(NIGHT.exposure, DAY.exposure, D);
+      const useDay = D > 0.5;
+      if (useDay !== dayTex) {
+        dayTex = useDay;
+        for (const f of facades) {
+          f.mat.map = useDay ? f.day : f.night;
+          f.mat.emissiveMap = f.lit && !useDay ? f.night : null;
+          f.mat.emissive.setHex(f.lit && !useDay ? 0xffffff : 0x000000);
+          f.mat.needsUpdate = true;
+        }
+      }
+      for (const f of facades) if (f.lit) f.mat.emissiveIntensity = 0.32 * nightness;
+
       lamps.forEach((l, k) => {
         const on = 1 - smooth(0.6, 2.2, Math.abs(t - k));
-        l.spot.intensity = 55 * (0.2 + 0.8 * on);
-        if (fronts[k]) fronts[k].emissiveIntensity = 0.12 + 0.55 * on;
-        (l.halo.material as THREE.SpriteMaterial).opacity = 0.25 + 0.4 * on;
+        l.spot.intensity = 14 * (0.25 + 0.75 * on) * nightness;
+        if (fronts[k]) {
+          fronts[k].uniforms.uLamp.value = on;
+          fronts[k].uniforms.uDay.value = D;
+        }
+        (l.halo.material as THREE.SpriteMaterial).opacity = (0.25 + 0.4 * on) * nightness;
+        l.bulb.color.lerpColors(NIGHT.bulb, DAY.bulb, D);
       });
+      (dust.material as THREE.PointsMaterial).opacity = 0.5 * nightness;
       if (!reduce) {
         dust.rotation.y = Math.sin(time * 0.05) * 0.02;
         dust.position.y = Math.sin(time * 0.3) * 0.15;
@@ -332,6 +512,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
 
     return () => {
       alive = false;
+      clearInterval(dayTimer);
       cancelAnimationFrame(raf);
       removeEventListener("pointermove", onMove);
       removeEventListener("click", onClick);
@@ -352,7 +533,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
   return (
     <>
       <div ref={stage} className={`${styles.stage} ${noGL ? styles.hidden : ""}`} aria-hidden="true" />
-      <div className={styles.vignette} aria-hidden="true" />
+      <div className={`${styles.vignette} ${isDay ? styles.day : ""}`} aria-hidden="true" />
 
       <div ref={track} className={styles.track}>
         <section className={`${styles.hero} ${flying ? styles.away : ""}`}>
@@ -371,7 +552,7 @@ export default function NightWalk({ walls }: { walls: Wall[] }) {
             <Cta href="/about" variant="outline">Enter the studio</Cta>
           </div>
           <div className={styles.cue}>
-            <span>Scroll to walk the night</span>
+            <span>{isDay ? "Scroll to walk the street" : "Scroll to walk the night"}</span>
             <span className={styles.cueLine} />
           </div>
         </section>
